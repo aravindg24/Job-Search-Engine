@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { supabase } from './supabase'
 
 // In production (Vercel), VITE_API_URL points to the Render backend.
 // In development, it's empty and Vite's proxy forwards /api → localhost:8000.
@@ -7,6 +8,15 @@ const BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
+})
+
+// Attach Supabase JWT to every request
+api.interceptors.request.use(async (config) => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`
+  }
+  return config
 })
 
 // ── Search ─────────────────────────────────────────────────────────────────────

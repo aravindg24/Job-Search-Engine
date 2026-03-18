@@ -1,8 +1,16 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
+import { useAuth } from '../../hooks/useAuth'
 
 export default function Header() {
   const { dark, toggle } = useTheme()
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
+  }
 
   const navCls = ({ isActive }) =>
     `text-sm transition-colors duration-150 ${
@@ -64,6 +72,23 @@ export default function Header() {
           </svg>
           GitHub
         </a>
+
+        {/* Sign out */}
+        {user && (
+          <button
+            onClick={handleSignOut}
+            className="text-xs px-3 py-1.5 rounded-lg transition-all duration-150"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-3)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--border)' }}
+          >
+            Sign out
+          </button>
+        )}
 
         {/* Theme toggle */}
         <button

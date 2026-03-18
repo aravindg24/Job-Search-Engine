@@ -5,6 +5,8 @@ import SearchPage from './pages/SearchPage'
 import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
+import LoginPage from './pages/LoginPage'
+import AuthGuard from './components/shared/AuthGuard'
 import { useToast, ToastContainer } from './components/shared/Toast'
 
 function ThemeInit() {
@@ -25,15 +27,25 @@ export default function App() {
     <BrowserRouter>
       <ThemeInit />
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
-        <Header />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<SearchPage />} />
-            <Route path="/job/:id" element={<JobDetailPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </main>
+        <Routes>
+          {/* Public */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected — all other routes require auth */}
+          <Route path="/*" element={
+            <AuthGuard>
+              <Header />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<SearchPage />} />
+                  <Route path="/job/:id" element={<JobDetailPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                </Routes>
+              </main>
+            </AuthGuard>
+          } />
+        </Routes>
         <ToastContainer toasts={toasts} />
       </div>
     </BrowserRouter>

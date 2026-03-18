@@ -1,5 +1,5 @@
 """
-RoleGPT FastAPI backend.
+RoleGPT FastAPI backend — multi-user with Supabase Auth.
 Run: uvicorn app:app --reload
 """
 import logging
@@ -10,8 +10,9 @@ from collections import Counter
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Query
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+import jwt
 
 from config import settings
 from models import (
@@ -43,9 +44,31 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
+# ── Auth ───────────────────────────────────────────────────────────────────────
+
+def get_current_user(authorization: str = Header(None)) -> str:
+    """Extract and verify Supabase JWT, return user_id (sub claim)."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated.")
+    token = authorization.split(" ", 1)[1]
+    try:
+        payload = jwt.decode(
+            token,
+            settings.supabase_jwt_secret,
+            algorithms=["HS256"],
+            audience="authenticated",
+        )
+        return payload["sub"]
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token.")
+
+
+# ── Startup ────────────────────────────────────────────────────────────────────
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """On startup: ensure Qdrant collection exists and is populated."""
     create_collection()
     if count() == 0:
         logger.info("No jobs indexed yet. Running indexer...")
@@ -55,7 +78,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="RoleGPT API", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="RoleGPT API", version="3.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,7 +89,7 @@ app.add_middleware(
 )
 
 
-# ── Health ─────────────────────────────────────────────────────────────────────
+# ── Health (public) ────────────────────────────────────────────────────────────
 
 @app.get("/api/health")
 async def health():
@@ -76,13 +99,12 @@ async def health():
 # ── Search ─────────────────────────────────────────────────────────────────────
 
 @app.post("/api/search", response_model=SearchResponse)
-async def search(req: SearchRequest):
+async def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
-    # Enrich query with resume context if available
     enriched_query = req.query
-    profile_row = get_resume_profile()
+    profile_row = get_resume_profile(user_id)
     resume_profile = None
     if profile_row:
         resume_profile = profile_row.get("parsed_profile", {})
@@ -96,11 +118,10 @@ async def search(req: SearchRequest):
         resume_profile=resume_profile,
     )
 
-    # Save search to Supabase history
     search_record = None
     try:
         top_score = results[0].match_score if results else None
-        search_record = save_search(req.query, len(results), top_score)
+        search_record = save_search(req.query, len(results), top_score, user_id)
     except Exception as e:
         logger.warning(f"Could not save search history: {e}")
 
@@ -115,11 +136,10 @@ async def search(req: SearchRequest):
 # ── Explain ────────────────────────────────────────────────────────────────────
 
 @app.post("/api/explain", response_model=ExplainResponse)
-async def explain(req: ExplainRequest):
+async def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
     result = run_explain(query=req.query, job_id=req.job_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Job {req.job_id} not found.")
-
     return ExplainResponse(
         match_score=result.get("match_score", 70),
         strengths=result.get("strengths", []),
@@ -131,12 +151,12 @@ async def explain(req: ExplainRequest):
 # ── Resume ─────────────────────────────────────────────────────────────────────
 
 @app.post("/api/resume/upload")
-async def upload_resume(file: UploadFile = File(...)):
+async def upload_resume(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
     pdf_bytes = await file.read()
-    if len(pdf_bytes) > 10 * 1024 * 1024:  # 10 MB limit
+    if len(pdf_bytes) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Max 10 MB.")
 
     try:
@@ -147,39 +167,30 @@ async def upload_resume(file: UploadFile = File(...)):
     parsed = parse_profile(raw_text)
 
     try:
-        row = save_resume_profile(raw_text, parsed)
+        row = save_resume_profile(raw_text, parsed, user_id)
     except Exception as e:
         logger.error(f"Failed to save resume to Supabase: {e}")
         raise HTTPException(status_code=500, detail="Failed to save resume profile.")
 
-    return {
-        "message": "Resume uploaded and parsed successfully.",
-        "profile": parsed,
-        "id": row.get("id"),
-    }
+    return {"message": "Resume uploaded and parsed successfully.", "profile": parsed, "id": row.get("id")}
 
 
 @app.get("/api/resume/profile")
-async def get_profile():
-    row = get_resume_profile()
+async def get_profile(user_id: str = Depends(get_current_user)):
+    row = get_resume_profile(user_id)
     if not row:
         raise HTTPException(status_code=404, detail="No resume profile found. Please upload a resume.")
-    return {
-        "id": row.get("id"),
-        "parsed_profile": row.get("parsed_profile"),
-        "uploaded_at": row.get("uploaded_at"),
-    }
+    return {"id": row.get("id"), "parsed_profile": row.get("parsed_profile"), "uploaded_at": row.get("uploaded_at")}
 
 
 # ── Pitch ──────────────────────────────────────────────────────────────────────
 
 @app.post("/api/pitch", response_model=PitchResponse)
-async def pitch(req: PitchRequest):
+async def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
     valid_types = {"cover_letter_hook", "cold_email", "why_interested"}
     if req.pitch_type not in valid_types:
         raise HTTPException(status_code=400, detail=f"pitch_type must be one of {valid_types}")
 
-    # Fetch job from Qdrant
     from search.vector_store import get_client, _to_uuid
     client = get_client()
     results = client.retrieve(
@@ -191,11 +202,8 @@ async def pitch(req: PitchRequest):
         raise HTTPException(status_code=404, detail=f"Job {req.job_id} not found.")
 
     job = results[0].payload
-
-    # Get resume profile
-    profile_row = get_resume_profile()
+    profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile", {}) if profile_row else {}
-
     result = generate_pitch(resume_profile, job, req.pitch_type)
 
     return PitchResponse(
@@ -209,23 +217,13 @@ async def pitch(req: PitchRequest):
 # ── Gap Analysis ───────────────────────────────────────────────────────────────
 
 @app.get("/api/gaps", response_model=GapAnalysisResponse)
-async def gaps(search_id: int = Query(None)):
-    """
-    Returns gap analysis based on the latest search results (or filtered by search_id).
-    Re-runs the last search query to get fresh results for gap computation.
-    """
-    profile_row = get_resume_profile()
+async def gaps(search_id: int = Query(None), user_id: str = Depends(get_current_user)):
+    profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile", {}) if profile_row else None
 
-    # Get recent jobs from Qdrant to analyze (use a broad search)
-    if resume_profile:
-        query_text = build_search_context(resume_profile)
-    else:
-        query_text = "software engineer developer"
-
+    query_text = build_search_context(resume_profile) if resume_profile else "software engineer developer"
     query_vec = embed(query_text)
     raw_results = vector_search(query_vec, top_k=15)
-
     result = analyze_gaps(raw_results, resume_profile)
     return GapAnalysisResponse(**result)
 
@@ -233,13 +231,14 @@ async def gaps(search_id: int = Query(None)):
 # ── Application Tracker ────────────────────────────────────────────────────────
 
 @app.post("/api/track")
-async def track_job(req: TrackRequest):
+async def track_job(req: TrackRequest, user_id: str = Depends(get_current_user)):
     try:
         row = upsert_tracked_job(
             job_id=req.job_id,
             job_title=req.job_title,
             company=req.company,
             match_score=req.match_score,
+            user_id=user_id,
             status=req.status,
             notes=req.notes,
             pitch=req.pitch,
@@ -248,14 +247,13 @@ async def track_job(req: TrackRequest):
     except Exception as e:
         logger.error(f"Failed to track job: {e}")
         raise HTTPException(status_code=500, detail="Failed to save tracked job.")
-
     return {"message": "Job tracked successfully.", "job": row}
 
 
 @app.get("/api/track", response_model=TrackerResponse)
-async def get_tracker():
+async def get_tracker(user_id: str = Depends(get_current_user)):
     try:
-        jobs = get_tracked_jobs()
+        jobs = get_tracked_jobs(user_id)
     except Exception as e:
         logger.error(f"Failed to fetch tracked jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch tracked jobs.")
@@ -269,7 +267,6 @@ async def get_tracker():
         rejected=status_counts.get("rejected", 0),
         withdrawn=status_counts.get("withdrawn", 0),
     )
-
     tracked = [
         TrackedJob(
             job_id=j.get("job_id", ""),
@@ -285,13 +282,12 @@ async def get_tracker():
         )
         for j in jobs
     ]
-
     return TrackerResponse(stats=stats, jobs=tracked)
 
 
 @app.delete("/api/track/{job_id}")
-async def remove_tracked_job(job_id: str):
-    deleted = delete_tracked_job(job_id)
+async def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_user)):
+    deleted = delete_tracked_job(job_id, user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Job not found in tracker.")
     return {"message": "Job removed from tracker."}
@@ -300,8 +296,8 @@ async def remove_tracked_job(job_id: str):
 # ── Watch / Digest ─────────────────────────────────────────────────────────────
 
 @app.get("/api/watch")
-async def get_watch():
-    prefs = get_watch_preferences()
+async def get_watch(user_id: str = Depends(get_current_user)):
+    prefs = get_watch_preferences(user_id)
     if not prefs:
         return {"min_match_score": 70, "keywords": [], "locations": [], "company_stages": []}
     return {
@@ -313,9 +309,10 @@ async def get_watch():
 
 
 @app.post("/api/watch")
-async def set_watch(req: WatchRequest):
+async def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user)):
     try:
         row = save_watch_preferences(
+            user_id=user_id,
             min_match_score=req.min_match_score,
             keywords=req.keywords,
             locations=req.locations,
@@ -324,21 +321,16 @@ async def set_watch(req: WatchRequest):
     except Exception as e:
         logger.error(f"Failed to save watch preferences: {e}")
         raise HTTPException(status_code=500, detail="Failed to save watch preferences.")
-
     return {"message": "Watch preferences saved.", "preferences": row}
 
 
 @app.get("/api/digest", response_model=DigestResponse)
-async def get_digest():
-    """
-    Returns new job matches since the last check, based on watch preferences.
-    """
-    prefs = get_watch_preferences()
+async def get_digest(user_id: str = Depends(get_current_user)):
+    prefs = get_watch_preferences(user_id)
     min_score = prefs.get("min_match_score", 70) if prefs else 70
     last_checked = prefs.get("last_checked_at") if prefs else None
 
-    # Build search query from resume + watch keywords
-    profile_row = get_resume_profile()
+    profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile", {}) if profile_row else None
 
     if resume_profile:
@@ -351,19 +343,14 @@ async def get_digest():
 
     query_vec = embed(query_text)
     raw_results = vector_search(query_vec, top_k=20)
-
-    # Re-rank against resume profile
     reranked = rerank(query_text, raw_results, resume_profile=resume_profile)
 
-    # Filter by score threshold and (optionally) indexed_at > last_checked
     digest_jobs = []
     for item in reranked:
         score = item.get("match_score", 0) or 0
         if score < min_score:
             continue
         payload = item.get("payload", {})
-
-        # Watch preference filters
         if prefs:
             locations = prefs.get("locations", [])
             stages = prefs.get("company_stages", [])
@@ -374,7 +361,6 @@ async def get_digest():
                     continue
             if stages and job_stage and job_stage not in stages:
                 continue
-
         digest_jobs.append(DigestJob(
             id=item.get("id", ""),
             title=payload.get("title", ""),
@@ -385,24 +371,17 @@ async def get_digest():
             source=payload.get("source", ""),
         ))
 
-    # Update last_checked
     try:
-        update_watch_last_checked()
+        update_watch_last_checked(user_id)
     except Exception:
         pass
 
-    return DigestResponse(
-        since=last_checked,
-        new_matches=len(digest_jobs),
-        jobs=digest_jobs[:10],
-    )
+    return DigestResponse(since=last_checked, new_matches=len(digest_jobs), jobs=digest_jobs[:10])
 
 
 @app.post("/api/digest/refresh")
-async def refresh_digest():
-    """Manually trigger a re-scrape + re-index of jobs."""
+async def refresh_digest(user_id: str = Depends(get_current_user)):
     try:
-        from indexer import main as run_indexer
         run_indexer(include_scraped=True)
         return {"message": "Job index refreshed successfully.", "jobs_indexed": count()}
     except Exception as e:

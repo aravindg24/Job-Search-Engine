@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Supabase
     supabase_url: str = ""
     supabase_key: str = ""
+    supabase_jwt_secret: str = ""   # Settings → API → JWT Secret in Supabase dashboard
 
     class Config:
         env_file = str(_ENV_FILE)
