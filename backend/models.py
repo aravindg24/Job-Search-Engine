@@ -1,6 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 
+
+# ── Search ─────────────────────────────────────────────────────────────────────
 
 class SearchFilters(BaseModel):
     remote: Optional[bool] = None
@@ -35,18 +37,7 @@ class SearchResponse(BaseModel):
     results: List[JobResult]
     total: int
     query: str
-
-
-class ExplainRequest(BaseModel):
-    query: str
-    job_id: str
-
-
-class ExplainResponse(BaseModel):
-    match_score: float
-    strengths: List[str]
-    gaps: List[str]
-    suggestion: str
+    search_id: Optional[int] = None
 
 
 class Job(BaseModel):
@@ -63,3 +54,137 @@ class Job(BaseModel):
     source_url: Optional[str] = None
     posted_date: Optional[str] = None
     tags: List[str]
+
+
+# ── Explain ────────────────────────────────────────────────────────────────────
+
+class ExplainRequest(BaseModel):
+    query: str
+    job_id: str
+
+
+class StrengthItem(BaseModel):
+    area: str
+    detail: str
+
+
+class GapItem(BaseModel):
+    area: str
+    detail: str
+    severity: str = "medium"  # low | medium | high
+
+
+class ExplainResponse(BaseModel):
+    match_score: float
+    strengths: List[Any]
+    gaps: List[Any]
+    suggestion: str
+
+
+# ── Resume ─────────────────────────────────────────────────────────────────────
+
+class ResumeProfileResponse(BaseModel):
+    id: int
+    parsed_profile: Dict[str, Any]
+    uploaded_at: str
+
+
+# ── Pitch ──────────────────────────────────────────────────────────────────────
+
+class PitchRequest(BaseModel):
+    job_id: str
+    pitch_type: str = "cover_letter_hook"  # cover_letter_hook | cold_email | why_interested
+
+
+class KeyMapping(BaseModel):
+    jd_requirement: str
+    your_experience: str
+
+
+class PitchResponse(BaseModel):
+    pitch: str
+    key_mappings: List[Any]
+    framing_advice: str
+    pitch_type: str
+
+
+# ── Gap Analysis ───────────────────────────────────────────────────────────────
+
+class SkillGap(BaseModel):
+    skill: str
+    demanded_by: int
+    percentage: int
+    priority: Optional[str] = None
+    status: Optional[str] = None
+
+
+class GapAnalysisResponse(BaseModel):
+    total_jobs_analyzed: int
+    missing_skills: List[SkillGap]
+    strong_skills: List[SkillGap]
+    insight: str
+
+
+# ── Application Tracker ────────────────────────────────────────────────────────
+
+class TrackRequest(BaseModel):
+    job_id: str
+    job_title: str = ""
+    company: str = ""
+    match_score: Optional[float] = None
+    status: str = "saved"  # saved | applied | interviewing | offered | rejected | withdrawn
+    notes: Optional[str] = None
+    pitch: Optional[str] = None
+    applied_date: Optional[str] = None
+
+
+class TrackedJob(BaseModel):
+    job_id: str
+    job_title: Optional[str]
+    company: Optional[str]
+    status: str
+    match_score: Optional[float]
+    notes: Optional[str]
+    pitch: Optional[str]
+    applied_date: Optional[str]
+    created_at: Optional[str]
+    updated_at: Optional[str]
+
+
+class TrackerStats(BaseModel):
+    saved: int = 0
+    applied: int = 0
+    interviewing: int = 0
+    offered: int = 0
+    rejected: int = 0
+    withdrawn: int = 0
+
+
+class TrackerResponse(BaseModel):
+    stats: TrackerStats
+    jobs: List[TrackedJob]
+
+
+# ── Watch / Digest ─────────────────────────────────────────────────────────────
+
+class WatchRequest(BaseModel):
+    min_match_score: float = 70
+    keywords: List[str] = []
+    locations: List[str] = []
+    company_stages: List[str] = []
+
+
+class DigestJob(BaseModel):
+    id: str
+    title: str
+    company: str
+    match_score: float
+    match_reason: str
+    posted_date: Optional[str]
+    source: str
+
+
+class DigestResponse(BaseModel):
+    since: Optional[str]
+    new_matches: int
+    jobs: List[DigestJob]

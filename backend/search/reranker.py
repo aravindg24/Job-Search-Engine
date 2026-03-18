@@ -1,6 +1,6 @@
 """
-Gemini-powered re-ranking of job search results.
-Falls back gracefully to vector-score ordering if Gemini is unavailable.
+Cerebras-powered re-ranking of job search results.
+Falls back gracefully to vector-score ordering if Cerebras is unavailable.
 """
 import json
 import logging
@@ -10,16 +10,15 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-_gemini_client = None
+_client = None
 
 
 def _get_client():
-    global _gemini_client
-    if _gemini_client is None and settings.gemini_api_key:
-        import google.generativeai as genai
-        genai.configure(api_key=settings.gemini_api_key)
-        _gemini_client = genai.GenerativeModel("gemini-2.0-flash")
-    return _gemini_client
+    global _client
+    if _client is None and settings.cerebras_api_key:
+        from cerebras.cloud.sdk import Cerebras
+        _client = Cerebras(api_key=settings.cerebras_api_key)
+    return _client
 
 
 RERANK_PROMPT = """You are an expert job matching assistant. Given a candidate's self-description and a list of job postings, re-rank the jobs by how well they match the candidate.
@@ -60,15 +59,14 @@ Provide a detailed match analysis. Return ONLY valid JSON with NO markdown or co
 }}"""
 
 
-def rerank(query: str, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def rerank(query: str, candidates: List[Dict[str, Any]], resume_profile: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """
-    Re-rank candidates using Gemini. Falls back to original ordering on failure.
+    Re-rank candidates using Cerebras. Falls back to original ordering on failure.
     candidates: list of {id, score, payload}
     Returns: candidates with match_score and match_reason added, sorted by rank.
     """
     client = _get_client()
     if not client or not candidates:
-        # Fallback: use vector similarity score as match_score
         for i, c in enumerate(candidates):
             c["match_score"] = round(c["score"] * 100, 1)
             c["match_reason"] = "Matched based on semantic similarity to your description."
@@ -80,23 +78,29 @@ def rerank(query: str, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         for i, c in enumerate(candidates)
     ])
 
+    candidate_context = query
+    if resume_profile:
+        import json as _json
+        candidate_context = f"Resume Profile:\n{_json.dumps(resume_profile, indent=2)[:1500]}\n\nSearch intent: {query}"
+
     prompt = RERANK_PROMPT.format(
-        query=query,
+        query=candidate_context,
         jobs_list=jobs_list,
         count=len(candidates)
     )
 
     try:
-        response = client.generate_content(prompt)
-        text = response.text.strip()
+        response = client.chat.completions.create(
+            model=settings.cerebras_model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = response.choices[0].message.content.strip()
 
-        # Strip markdown code blocks if present
         text = re.sub(r"^```(?:json)?\n?", "", text)
         text = re.sub(r"\n?```$", "", text)
 
         ranked = json.loads(text)
 
-        # Build lookup by job_id
         id_to_candidate = {c["id"]: c for c in candidates}
         result = []
         for item in ranked:
@@ -107,7 +111,6 @@ def rerank(query: str, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                 c["match_reason"] = item.get("reason", "")
                 result.append(c)
 
-        # Add any jobs Gemini missed (shouldn't happen, but be safe)
         ranked_ids = {item.get("job_id") for item in ranked}
         for c in candidates:
             if c["id"] not in ranked_ids:
@@ -118,7 +121,7 @@ def rerank(query: str, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]
         return result
 
     except Exception as e:
-        logger.warning(f"Gemini rerank failed: {e}. Using fallback ordering.")
+        logger.warning(f"Cerebras rerank failed: {e}. Using fallback ordering.")
         for c in candidates:
             c["match_score"] = round(c["score"] * 100, 1)
             c["match_reason"] = "Matched based on semantic similarity to your description."
@@ -148,11 +151,14 @@ def explain(query: str, job: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     try:
-        response = client.generate_content(prompt)
-        text = response.text.strip()
+        response = client.chat.completions.create(
+            model=settings.cerebras_model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = response.choices[0].message.content.strip()
         text = re.sub(r"^```(?:json)?\n?", "", text)
         text = re.sub(r"\n?```$", "", text)
         return json.loads(text)
     except Exception as e:
-        logger.warning(f"Gemini explain failed: {e}. Using fallback.")
+        logger.warning(f"Cerebras explain failed: {e}. Using fallback.")
         return fallback

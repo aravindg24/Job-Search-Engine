@@ -45,3 +45,14 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Claude Code local config (contains personal settings)
+.claude/
+
+# Temp files
+backend/temp_readme.md
+backend/search/gaps.py.bak
+
+# Uploaded resumes (personal data)
+backend/data/resumes/
+*.pdf

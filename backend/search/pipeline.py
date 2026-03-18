@@ -15,6 +15,7 @@ def run_search(
     query: str,
     top_k: int = 10,
     filters: Optional[SearchFilters] = None,
+    resume_profile: Optional[Dict[str, Any]] = None,
 ) -> List[JobResult]:
     """Full search pipeline: embed → search → rerank → return."""
     # Step 1: Embed the query
@@ -32,8 +33,8 @@ def run_search(
     if not candidates:
         return []
 
-    # Step 3: LLM re-rank
-    reranked = rerank(query, candidates)
+    # Step 3: LLM re-rank (pass resume profile for richer scoring)
+    reranked = rerank(query, candidates, resume_profile=resume_profile)
 
     # Step 4: Take top_k and format
     results = []

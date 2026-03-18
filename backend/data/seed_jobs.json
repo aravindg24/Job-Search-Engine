@@ -6,13 +6,29 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "At Juicebox, we're building PeopleGPT — the world's most powerful AI recruiter. You'll work on the core search and ranking pipeline that matches recruiters with the best candidates using semantic search, vector databases, and LLM re-ranking. You'll own the full search stack: from embedding pipelines to ranking models to the API layer that powers our product. Our team is small (35 people), ship-oriented, and deeply technical.",
-    "requirements": ["Python", "LLMs", "Semantic Search", "Vector Databases", "React", "FastAPI", "Qdrant or Pinecone", "RAG systems"],
+    "requirements": [
+      "Python",
+      "LLMs",
+      "Semantic Search",
+      "Vector Databases",
+      "React",
+      "FastAPI",
+      "Qdrant or Pinecone",
+      "RAG systems"
+    ],
     "salary_range": "$150K - $210K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://juicebox.com/careers",
+    "source_url": "https://jobs.ashby.com/juicebox",
     "posted_date": "2026-02-15",
-    "tags": ["ai", "search", "full-stack", "startup", "llm", "vector-search"]
+    "tags": [
+      "ai",
+      "search",
+      "full-stack",
+      "startup",
+      "llm",
+      "vector-search"
+    ]
   },
   {
     "id": "job-002",
@@ -21,13 +37,27 @@
     "location": "New York, NY",
     "remote": false,
     "description": "Ramp is the fastest-growing corporate card and spend management platform. We're building financial infrastructure that saves companies time and money. As a full-stack engineer, you'll build features used by thousands of finance teams — from real-time spend analytics to automated expense workflows. You'll work across our React frontend and Python/Go backend, collaborating with product, design, and data teams.",
-    "requirements": ["React", "TypeScript", "Python", "Go", "PostgreSQL", "GraphQL", "AWS"],
+    "requirements": [
+      "React",
+      "TypeScript",
+      "Python",
+      "Go",
+      "PostgreSQL",
+      "GraphQL",
+      "AWS"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://ramp.com/careers",
+    "source_url": "https://boards.greenhouse.io/ramp",
     "posted_date": "2026-02-20",
-    "tags": ["fintech", "full-stack", "react", "typescript", "scale"]
+    "tags": [
+      "fintech",
+      "full-stack",
+      "react",
+      "typescript",
+      "scale"
+    ]
   },
   {
     "id": "job-003",
@@ -36,13 +66,28 @@
     "location": "San Francisco, CA",
     "remote": true,
     "description": "Perplexity is redefining how people search and learn. We're building the world's first AI-native answer engine, combining real-time web search with LLM-powered synthesis. You'll work on the infrastructure powering millions of daily queries — from our retrieval pipeline to our LLM serving layer. This role is for engineers who care deeply about performance, correctness, and scale.",
-    "requirements": ["Python", "CUDA", "LLM inference", "Distributed systems", "Kubernetes", "vLLM or TGI", "Vector search"],
+    "requirements": [
+      "Python",
+      "CUDA",
+      "LLM inference",
+      "Distributed systems",
+      "Kubernetes",
+      "vLLM or TGI",
+      "Vector search"
+    ],
     "salary_range": "$160K - $220K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://perplexity.ai/careers",
+    "source_url": "https://jobs.ashby.com/perplexity",
     "posted_date": "2026-02-25",
-    "tags": ["ai", "infrastructure", "llm", "search", "scale", "ml-systems"]
+    "tags": [
+      "ai",
+      "infrastructure",
+      "llm",
+      "search",
+      "scale",
+      "ml-systems"
+    ]
   },
   {
     "id": "job-004",
@@ -51,13 +96,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Vercel is the platform for frontend developers, providing the speed and reliability innovators need to create at the moment of inspiration. You'll work on the core infrastructure that powers millions of deployments daily. This role focuses on our dashboard, CLI tooling, and developer experience — from edge functions to build pipelines. We care deeply about developer ergonomics and shipping fast.",
-    "requirements": ["TypeScript", "React", "Next.js", "Node.js", "Edge computing", "Rust (nice to have)"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Next.js",
+      "Node.js",
+      "Edge computing",
+      "Rust (nice to have)"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://vercel.com/careers",
+    "source_url": "https://boards.greenhouse.io/vercel",
     "posted_date": "2026-02-18",
-    "tags": ["frontend", "platform", "typescript", "nextjs", "devtools", "remote"]
+    "tags": [
+      "frontend",
+      "platform",
+      "typescript",
+      "nextjs",
+      "devtools",
+      "remote"
+    ]
   },
   {
     "id": "job-005",
@@ -66,13 +125,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Linear is building the new standard for software project management. We obsess over design, performance, and developer experience. Our app is beloved by thousands of engineering teams at companies like Vercel, Loom, and Raycast. You'll work on making Linear faster, more powerful, and more delightful — from our real-time sync engine to our keyboard-first UI. If you care about craft, this is your team.",
-    "requirements": ["TypeScript", "React", "GraphQL", "PostgreSQL", "Electron (nice to have)", "Real-time systems"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "GraphQL",
+      "PostgreSQL",
+      "Electron (nice to have)",
+      "Real-time systems"
+    ],
     "salary_range": "$160K - $210K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://linear.app/careers",
+    "source_url": "https://jobs.ashby.com/linear",
     "posted_date": "2026-02-10",
-    "tags": ["product", "typescript", "react", "design", "remote", "devtools"]
+    "tags": [
+      "product",
+      "typescript",
+      "react",
+      "design",
+      "remote",
+      "devtools"
+    ]
   },
   {
     "id": "job-006",
@@ -81,13 +154,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Anthropic is an AI safety company building reliable, interpretable, and steerable AI systems. As a Software Engineer on the Core team, you'll work on the infrastructure, tooling, and systems that enable us to train and deploy frontier AI models safely. This includes distributed training systems, evaluation frameworks, and the internal tooling that lets our research team move fast.",
-    "requirements": ["Python", "Distributed systems", "ML infrastructure", "PyTorch", "Kubernetes", "CUDA (helpful)"],
+    "requirements": [
+      "Python",
+      "Distributed systems",
+      "ML infrastructure",
+      "PyTorch",
+      "Kubernetes",
+      "CUDA (helpful)"
+    ],
     "salary_range": "$180K - $250K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://anthropic.com/careers",
+    "source_url": "https://boards.greenhouse.io/anthropic",
     "posted_date": "2026-03-01",
-    "tags": ["ai", "ml-systems", "infrastructure", "safety", "python", "distributed"]
+    "tags": [
+      "ai",
+      "ml-systems",
+      "infrastructure",
+      "safety",
+      "python",
+      "distributed"
+    ]
   },
   {
     "id": "job-007",
@@ -96,13 +183,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "OpenAI's mission is to ensure that artificial general intelligence benefits all of humanity. As a Software Engineer on the Applied AI team, you'll build products and APIs that bring our models to developers and consumers worldwide — from ChatGPT to the OpenAI API. You'll work on latency-critical serving infrastructure, developer tooling, and product features used by millions daily.",
-    "requirements": ["Python", "Go or Rust", "Distributed systems", "API design", "LLM APIs", "Kubernetes"],
+    "requirements": [
+      "Python",
+      "Go or Rust",
+      "Distributed systems",
+      "API design",
+      "LLM APIs",
+      "Kubernetes"
+    ],
     "salary_range": "$200K - $300K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://openai.com/careers",
+    "source_url": "https://boards.greenhouse.io/openai",
     "posted_date": "2026-03-02",
-    "tags": ["ai", "api", "infrastructure", "llm", "scale", "python"]
+    "tags": [
+      "ai",
+      "api",
+      "infrastructure",
+      "llm",
+      "scale",
+      "python"
+    ]
   },
   {
     "id": "job-008",
@@ -111,13 +212,27 @@
     "location": "San Francisco, CA",
     "remote": true,
     "description": "Anyscale is the company behind Ray, the open-source distributed computing framework used by OpenAI, Uber, and Spotify for AI workloads. As a Software Engineer on the ML Platform team, you'll build the managed Ray platform — making it easy for ML teams to train, tune, and serve models at scale. You'll work on distributed computing primitives, autoscaling, and developer experience.",
-    "requirements": ["Python", "Distributed systems", "Ray", "Kubernetes", "ML training workflows", "Go (nice to have)"],
+    "requirements": [
+      "Python",
+      "Distributed systems",
+      "Ray",
+      "Kubernetes",
+      "ML training workflows",
+      "Go (nice to have)"
+    ],
     "salary_range": "$160K - $220K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://anyscale.com/careers",
+    "source_url": "https://jobs.lever.co/anyscale",
     "posted_date": "2026-02-28",
-    "tags": ["ml-platform", "distributed", "python", "ray", "infrastructure", "open-source"]
+    "tags": [
+      "ml-platform",
+      "distributed",
+      "python",
+      "ray",
+      "infrastructure",
+      "open-source"
+    ]
   },
   {
     "id": "job-009",
@@ -126,13 +241,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Modal is the cloud platform for AI/ML engineers — run Python functions in the cloud with no infrastructure setup. We're rebuilding how developers run compute-intensive workloads. You'll work on our CLI, web dashboard, SDK, and the underlying infrastructure. Modal has a world-class engineering team and moves incredibly fast. If you love developer experience and making hard things simple, this is your place.",
-    "requirements": ["Python", "TypeScript", "React", "FastAPI or similar", "Container orchestration", "Cloud infrastructure (AWS/GCP)"],
+    "requirements": [
+      "Python",
+      "TypeScript",
+      "React",
+      "FastAPI or similar",
+      "Container orchestration",
+      "Cloud infrastructure (AWS/GCP)"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://modal.com/careers",
+    "source_url": "https://jobs.ashby.com/modal",
     "posted_date": "2026-02-22",
-    "tags": ["cloud", "devtools", "python", "typescript", "ml-infra", "remote", "startup"]
+    "tags": [
+      "cloud",
+      "devtools",
+      "python",
+      "typescript",
+      "ml-infra",
+      "remote",
+      "startup"
+    ]
   },
   {
     "id": "job-010",
@@ -141,13 +271,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Weights & Biases builds the leading MLOps platform — used by teams at OpenAI, NVIDIA, and thousands of ML engineers worldwide to track experiments, visualize training, and deploy models. You'll work on integrations with ML frameworks (PyTorch, TensorFlow, Hugging Face), build SDK features, and expand our ecosystem. Strong Python and passion for the ML developer experience required.",
-    "requirements": ["Python", "PyTorch", "TensorFlow", "REST APIs", "SDK design", "ML experimentation"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "TensorFlow",
+      "REST APIs",
+      "SDK design",
+      "ML experimentation"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://wandb.ai/careers",
+    "source_url": "https://boards.greenhouse.io/wandb",
     "posted_date": "2026-02-15",
-    "tags": ["mlops", "python", "ml", "devtools", "remote", "sdk"]
+    "tags": [
+      "mlops",
+      "python",
+      "ml",
+      "devtools",
+      "remote",
+      "sdk"
+    ]
   },
   {
     "id": "job-011",
@@ -156,13 +300,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Stripe is a technology company that builds economic infrastructure for the internet. As a Backend Engineer on the Data Platform team, you'll build the systems that power Stripe's financial reporting, fraud detection, and business intelligence for millions of businesses. You'll work on large-scale data pipelines, real-time stream processing, and the infrastructure that businesses rely on to understand their revenue.",
-    "requirements": ["Java or Scala", "Kafka", "Spark", "SQL", "Distributed systems", "Data modeling"],
+    "requirements": [
+      "Java or Scala",
+      "Kafka",
+      "Spark",
+      "SQL",
+      "Distributed systems",
+      "Data modeling"
+    ],
     "salary_range": "$170K - $230K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://stripe.com/jobs",
+    "source_url": "https://boards.greenhouse.io/stripe",
     "posted_date": "2026-02-20",
-    "tags": ["fintech", "data", "backend", "distributed", "kafka", "scale"]
+    "tags": [
+      "fintech",
+      "data",
+      "backend",
+      "distributed",
+      "kafka",
+      "scale"
+    ]
   },
   {
     "id": "job-012",
@@ -171,13 +329,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Figma is on a mission to make design accessible to all. Our Growth engineering team focuses on expanding Figma's reach — from onboarding flows to viral sharing features to monetization experiments. You'll run A/B tests at scale, build self-serve features, and partner with data science and design to grow our user base. Strong product instincts and experimentation mindset are key.",
-    "requirements": ["TypeScript", "React", "Python", "A/B testing", "SQL", "Product analytics"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Python",
+      "A/B testing",
+      "SQL",
+      "Product analytics"
+    ],
     "salary_range": "$160K - $210K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://figma.com/careers",
+    "source_url": "https://jobs.lever.co/figma",
     "posted_date": "2026-03-01",
-    "tags": ["growth", "product", "typescript", "react", "experimentation", "design-tools"]
+    "tags": [
+      "growth",
+      "product",
+      "typescript",
+      "react",
+      "experimentation",
+      "design-tools"
+    ]
   },
   {
     "id": "job-013",
@@ -186,13 +358,29 @@
     "location": "Remote",
     "remote": true,
     "description": "Cohere is building NLP AI for the enterprise. Our models power search, summarization, classification, and generation for Fortune 500 companies. As an ML Engineer, you'll fine-tune and evaluate LLMs, build retrieval-augmented generation (RAG) pipelines, and work closely with customers to deploy Cohere's models in production. Strong background in transformers and hands-on LLM experience required.",
-    "requirements": ["Python", "PyTorch", "Transformers", "RAG", "LLM fine-tuning", "RLHF (nice to have)", "MLflow or W&B"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "Transformers",
+      "RAG",
+      "LLM fine-tuning",
+      "RLHF (nice to have)",
+      "MLflow or W&B"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://cohere.com/careers",
+    "source_url": "https://jobs.lever.co/cohere",
     "posted_date": "2026-02-28",
-    "tags": ["ml", "llm", "rag", "nlp", "python", "fine-tuning", "remote"]
+    "tags": [
+      "ml",
+      "llm",
+      "rag",
+      "nlp",
+      "python",
+      "fine-tuning",
+      "remote"
+    ]
   },
   {
     "id": "job-014",
@@ -201,13 +389,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Notion is the all-in-one workspace for notes, docs, and databases. We're building a new generation of AI features that make Notion smarter — from AI writing assistance to intelligent search to automated workflows. You'll work on the AI products team, integrating LLMs into our core product and building new AI-native features. Strong full-stack skills and product intuition required.",
-    "requirements": ["TypeScript", "React", "Node.js", "LLM APIs", "PostgreSQL", "Product sense"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "LLM APIs",
+      "PostgreSQL",
+      "Product sense"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://notion.so/careers",
+    "source_url": "https://jobs.lever.co/notionhq",
     "posted_date": "2026-02-25",
-    "tags": ["ai", "full-stack", "product", "typescript", "llm", "consumer"]
+    "tags": [
+      "ai",
+      "full-stack",
+      "product",
+      "typescript",
+      "llm",
+      "consumer"
+    ]
   },
   {
     "id": "job-015",
@@ -216,13 +418,26 @@
     "location": "Remote",
     "remote": true,
     "description": "Vercel is looking for new grad engineers excited about the future of the web. You'll join one of our product teams — working on Next.js, our deployment platform, or developer tooling. We value curiosity, ownership, and shipping fast. This is a great opportunity to grow with a team that cares deeply about craft and developer experience. Open to candidates who graduated in 2025 or will graduate in 2026.",
-    "requirements": ["JavaScript/TypeScript", "React", "Node.js", "CS fundamentals", "Passion for developer tools"],
+    "requirements": [
+      "JavaScript/TypeScript",
+      "React",
+      "Node.js",
+      "CS fundamentals",
+      "Passion for developer tools"
+    ],
     "salary_range": "$120K - $150K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://vercel.com/careers",
+    "source_url": "https://boards.greenhouse.io/vercel",
     "posted_date": "2026-02-10",
-    "tags": ["new-grad", "remote", "typescript", "frontend", "devtools", "entry-level"]
+    "tags": [
+      "new-grad",
+      "remote",
+      "typescript",
+      "frontend",
+      "devtools",
+      "entry-level"
+    ]
   },
   {
     "id": "job-016",
@@ -231,13 +446,27 @@
     "location": "San Francisco, CA",
     "remote": true,
     "description": "Loom makes async video communication effortless. As a Senior Backend Engineer, you'll work on the systems that handle millions of video recordings, transcriptions, and AI-powered summaries. You'll build scalable APIs, optimize our video processing pipeline, and integrate AI features that make Loom smarter. Strong distributed systems experience and care for reliability are essential.",
-    "requirements": ["Python or Go", "PostgreSQL", "Kafka", "AWS", "Video processing (nice to have)", "REST/GraphQL APIs"],
+    "requirements": [
+      "Python or Go",
+      "PostgreSQL",
+      "Kafka",
+      "AWS",
+      "Video processing (nice to have)",
+      "REST/GraphQL APIs"
+    ],
     "salary_range": "$160K - $210K",
     "company_stage": "Acquired (Atlassian)",
     "source": "seed",
-    "source_url": "https://loom.com/careers",
+    "source_url": "https://boards.greenhouse.io/loom",
     "posted_date": "2026-02-18",
-    "tags": ["backend", "distributed", "video", "python", "go", "api"]
+    "tags": [
+      "backend",
+      "distributed",
+      "video",
+      "python",
+      "go",
+      "api"
+    ]
   },
   {
     "id": "job-017",
@@ -246,13 +475,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Pinterest's mission is to bring everyone the inspiration to create a life they love. Our recommendations team builds the ML systems that surface the right Pins to the right people at the right time. You'll work on ranking models, feature engineering, and A/B testing infrastructure. We operate at massive scale — 450M+ monthly active users — so you'll have real impact on a global product.",
-    "requirements": ["Python", "PyTorch or TensorFlow", "Spark", "SQL", "Recommendation systems", "Feature stores"],
+    "requirements": [
+      "Python",
+      "PyTorch or TensorFlow",
+      "Spark",
+      "SQL",
+      "Recommendation systems",
+      "Feature stores"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://pinterest.com/careers",
+    "source_url": "https://boards.greenhouse.io/pinterest",
     "posted_date": "2026-02-22",
-    "tags": ["ml", "recommendations", "python", "scale", "ranking", "consumer"]
+    "tags": [
+      "ml",
+      "recommendations",
+      "python",
+      "scale",
+      "ranking",
+      "consumer"
+    ]
   },
   {
     "id": "job-018",
@@ -261,13 +504,27 @@
     "location": "Remote",
     "remote": true,
     "description": "HashiCorp builds infrastructure automation tools used by engineers worldwide — Terraform, Vault, Consul, Nomad. As a Developer Experience engineer, you'll improve the ergonomics of our CLI tools, SDKs, and documentation. You'll work on making complex infrastructure workflows approachable and building tools that empower developers to ship more confidently.",
-    "requirements": ["Go", "Python", "CLI development", "Infrastructure as Code", "Terraform (helpful)", "Technical writing"],
+    "requirements": [
+      "Go",
+      "Python",
+      "CLI development",
+      "Infrastructure as Code",
+      "Terraform (helpful)",
+      "Technical writing"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Acquired (IBM)",
     "source": "seed",
-    "source_url": "https://hashicorp.com/careers",
+    "source_url": "https://boards.greenhouse.io/hashicorp",
     "posted_date": "2026-02-14",
-    "tags": ["devtools", "go", "cli", "infrastructure", "remote", "oss"]
+    "tags": [
+      "devtools",
+      "go",
+      "cli",
+      "infrastructure",
+      "remote",
+      "oss"
+    ]
   },
   {
     "id": "job-019",
@@ -276,13 +533,27 @@
     "location": "Remote",
     "remote": true,
     "description": "dbt Labs makes data reliable, consumable, and accessible. Our open-source dbt tool is used by tens of thousands of data teams. As a Software Engineer on the data engineering team, you'll work on dbt Core (open source) and dbt Cloud (SaaS), building features that help data analysts transform and document their data with confidence.",
-    "requirements": ["Python", "SQL", "dbt (nice to have)", "PostgreSQL", "Data warehousing", "Jinja templating"],
+    "requirements": [
+      "Python",
+      "SQL",
+      "dbt (nice to have)",
+      "PostgreSQL",
+      "Data warehousing",
+      "Jinja templating"
+    ],
     "salary_range": "$140K - $185K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://getdbt.com/careers",
+    "source_url": "https://boards.greenhouse.io/dbtlabs",
     "posted_date": "2026-02-20",
-    "tags": ["data", "python", "sql", "open-source", "remote", "analytics-engineering"]
+    "tags": [
+      "data",
+      "python",
+      "sql",
+      "open-source",
+      "remote",
+      "analytics-engineering"
+    ]
   },
   {
     "id": "job-020",
@@ -291,13 +562,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Shopify powers commerce for millions of merchants worldwide. Our Design Systems team builds Polaris — the component library and design system used across all of Shopify's products. You'll work on accessible, performant, and delightful UI components in React, collaborate with designers, and set engineering standards for how Shopify ships UI at scale.",
-    "requirements": ["TypeScript", "React", "CSS", "Accessibility (WCAG)", "Design tokens", "Storybook"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "CSS",
+      "Accessibility (WCAG)",
+      "Design tokens",
+      "Storybook"
+    ],
     "salary_range": "$130K - $180K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://shopify.com/careers",
+    "source_url": "https://boards.greenhouse.io/shopify",
     "posted_date": "2026-02-28",
-    "tags": ["frontend", "design-systems", "react", "typescript", "accessibility", "remote"]
+    "tags": [
+      "frontend",
+      "design-systems",
+      "react",
+      "typescript",
+      "accessibility",
+      "remote"
+    ]
   },
   {
     "id": "job-021",
@@ -306,13 +591,26 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Scale AI is accelerating the development of AI by providing the highest quality training data for ML models. Our engineering team builds the infrastructure, tooling, and ML systems that power data labeling at massive scale. You'll work on active learning systems, quality prediction models, and the platforms used by thousands of annotators and ML teams worldwide.",
-    "requirements": ["Python", "PyTorch or scikit-learn", "SQL", "Distributed systems", "Active learning (nice to have)"],
+    "requirements": [
+      "Python",
+      "PyTorch or scikit-learn",
+      "SQL",
+      "Distributed systems",
+      "Active learning (nice to have)"
+    ],
     "salary_range": "$150K - $210K",
     "company_stage": "Series F",
     "source": "seed",
-    "source_url": "https://scale.com/careers",
+    "source_url": "https://jobs.lever.co/scaleai",
     "posted_date": "2026-02-25",
-    "tags": ["ml", "ai", "python", "data", "infrastructure", "scale"]
+    "tags": [
+      "ml",
+      "ai",
+      "python",
+      "data",
+      "infrastructure",
+      "scale"
+    ]
   },
   {
     "id": "job-022",
@@ -321,13 +619,26 @@
     "location": "Remote",
     "remote": true,
     "description": "Cloudflare runs one of the largest networks on the internet, protecting and accelerating millions of websites. As an Infrastructure Engineer, you'll work on the systems that keep our global edge network running — from our Rust-based edge runtime to our distributed configuration system. Strong systems programming background and passion for reliability and performance required.",
-    "requirements": ["Rust or Go", "Distributed systems", "Networking (TCP/IP, DNS)", "Linux", "Kubernetes"],
+    "requirements": [
+      "Rust or Go",
+      "Distributed systems",
+      "Networking (TCP/IP, DNS)",
+      "Linux",
+      "Kubernetes"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://cloudflare.com/careers",
+    "source_url": "https://boards.greenhouse.io/cloudflare",
     "posted_date": "2026-02-20",
-    "tags": ["infrastructure", "rust", "go", "networking", "edge", "distributed"]
+    "tags": [
+      "infrastructure",
+      "rust",
+      "go",
+      "networking",
+      "edge",
+      "distributed"
+    ]
   },
   {
     "id": "job-023",
@@ -336,13 +647,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Retool lets developers build internal tools 10x faster. Thousands of companies — including Amazon, DoorDash, and NBC — use Retool to build custom dashboards, admin panels, and internal apps. As a Full Stack Engineer, you'll build new features in our visual builder, extend our component library, and improve the platform that thousands of developers depend on.",
-    "requirements": ["TypeScript", "React", "Node.js", "PostgreSQL", "GraphQL", "Low-code or no-code tools knowledge"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "PostgreSQL",
+      "GraphQL",
+      "Low-code or no-code tools knowledge"
+    ],
     "salary_range": "$140K - $185K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://retool.com/careers",
+    "source_url": "https://boards.greenhouse.io/retool",
     "posted_date": "2026-02-15",
-    "tags": ["full-stack", "saas", "react", "typescript", "b2b", "devtools"]
+    "tags": [
+      "full-stack",
+      "saas",
+      "react",
+      "typescript",
+      "b2b",
+      "devtools"
+    ]
   },
   {
     "id": "job-024",
@@ -351,13 +676,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Elastic powers search for thousands of organizations — from Uber to the US Government. Our Search team builds the next generation of Elasticsearch features including vector search, hybrid search, and AI-powered relevance tuning. You'll work on Java-based distributed search infrastructure with real-world impact on petabyte-scale search deployments.",
-    "requirements": ["Java", "Elasticsearch", "Distributed systems", "Lucene (helpful)", "Vector search", "REST APIs"],
+    "requirements": [
+      "Java",
+      "Elasticsearch",
+      "Distributed systems",
+      "Lucene (helpful)",
+      "Vector search",
+      "REST APIs"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://elastic.co/careers",
+    "source_url": "https://boards.greenhouse.io/elastic",
     "posted_date": "2026-02-22",
-    "tags": ["search", "java", "distributed", "vector-search", "open-source", "remote"]
+    "tags": [
+      "search",
+      "java",
+      "distributed",
+      "vector-search",
+      "open-source",
+      "remote"
+    ]
   },
   {
     "id": "job-025",
@@ -366,13 +705,26 @@
     "location": "New York, NY",
     "remote": false,
     "description": "Ramp is one of the fastest growing startups in history. We're looking for exceptional new grad engineers to join our team. You'll be a full member of the team from day one — building features, fixing bugs, and owning projects. We'll invest in your growth through mentorship, code reviews, and pairing. Ramp engineers ship real impact quickly, regardless of experience level.",
-    "requirements": ["JavaScript/TypeScript", "Python or Go", "CS fundamentals", "SQL basics", "Collaborative mindset"],
+    "requirements": [
+      "JavaScript/TypeScript",
+      "Python or Go",
+      "CS fundamentals",
+      "SQL basics",
+      "Collaborative mindset"
+    ],
     "salary_range": "$130K - $160K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://ramp.com/careers",
+    "source_url": "https://boards.greenhouse.io/ramp",
     "posted_date": "2026-03-01",
-    "tags": ["new-grad", "fintech", "typescript", "python", "startup", "entry-level"]
+    "tags": [
+      "new-grad",
+      "fintech",
+      "typescript",
+      "python",
+      "startup",
+      "entry-level"
+    ]
   },
   {
     "id": "job-026",
@@ -381,13 +733,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Mistral AI is building the best open-weight language models in the world. We need ML Engineers who can push the boundaries of what's possible with fine-tuning, RLHF, and model alignment. You'll work directly on training runs, evaluation frameworks, and research collaborations. Strong background in large-scale distributed training and a passion for frontier model research required.",
-    "requirements": ["Python", "PyTorch", "CUDA", "RLHF", "LLM fine-tuning", "Distributed training (FSDP, DeepSpeed)"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "CUDA",
+      "RLHF",
+      "LLM fine-tuning",
+      "Distributed training (FSDP, DeepSpeed)"
+    ],
     "salary_range": "$180K - $250K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://mistral.ai/careers",
+    "source_url": "https://jobs.lever.co/mistral",
     "posted_date": "2026-02-28",
-    "tags": ["ml", "llm", "fine-tuning", "rlhf", "python", "research", "remote"]
+    "tags": [
+      "ml",
+      "llm",
+      "fine-tuning",
+      "rlhf",
+      "python",
+      "research",
+      "remote"
+    ]
   },
   {
     "id": "job-027",
@@ -396,13 +763,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Databricks is the data and AI company. Our Lakehouse platform is used by thousands of enterprises to unify data, analytics, and AI. As a Platform Engineer, you'll build the core infrastructure that underpins the Databricks Data Intelligence Platform — from our multi-cloud Kubernetes deployment system to our monitoring and reliability tooling.",
-    "requirements": ["Scala or Java", "Python", "Spark", "Kubernetes", "AWS/Azure/GCP", "Distributed systems"],
+    "requirements": [
+      "Scala or Java",
+      "Python",
+      "Spark",
+      "Kubernetes",
+      "AWS/Azure/GCP",
+      "Distributed systems"
+    ],
     "salary_range": "$170K - $230K",
     "company_stage": "Pre-IPO",
     "source": "seed",
-    "source_url": "https://databricks.com/careers",
+    "source_url": "https://boards.greenhouse.io/databricks",
     "posted_date": "2026-02-18",
-    "tags": ["data", "spark", "scala", "cloud", "infrastructure", "ml-platform"]
+    "tags": [
+      "data",
+      "spark",
+      "scala",
+      "cloud",
+      "infrastructure",
+      "ml-platform"
+    ]
   },
   {
     "id": "job-028",
@@ -411,13 +792,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Ably is the realtime data delivery platform for developers — powering chat, live sports scores, collaborative editing, and IoT for millions of users. As a Realtime Systems Engineer, you'll work on our globally distributed pub/sub infrastructure, client SDKs, and protocol design. We care deeply about correctness, low latency, and rock-solid reliability.",
-    "requirements": ["Go or Elixir", "WebSockets", "MQTT", "Distributed systems", "Protocol design", "SDK development"],
+    "requirements": [
+      "Go or Elixir",
+      "WebSockets",
+      "MQTT",
+      "Distributed systems",
+      "Protocol design",
+      "SDK development"
+    ],
     "salary_range": "$130K - $180K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://ably.com/careers",
+    "source_url": "https://boards.greenhouse.io/ably",
     "posted_date": "2026-02-14",
-    "tags": ["realtime", "go", "distributed", "websockets", "sdk", "remote"]
+    "tags": [
+      "realtime",
+      "go",
+      "distributed",
+      "websockets",
+      "sdk",
+      "remote"
+    ]
   },
   {
     "id": "job-029",
@@ -426,13 +821,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Hugging Face is the collaboration platform for the ML community, hosting 500K+ models, datasets, and spaces. We're building the GitHub for ML. As an Engineer on our Tooling team, you'll build and maintain transformers, diffusers, datasets, and other open-source libraries used by millions of ML practitioners worldwide. Strong Python and deep ML framework knowledge required.",
-    "requirements": ["Python", "PyTorch", "Transformers library", "Open source contribution", "ML models", "REST APIs"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "Transformers library",
+      "Open source contribution",
+      "ML models",
+      "REST APIs"
+    ],
     "salary_range": "$130K - $180K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://huggingface.co/jobs",
+    "source_url": "https://apply.workable.com/huggingface/",
     "posted_date": "2026-02-22",
-    "tags": ["ml", "open-source", "python", "pytorch", "nlp", "remote", "developer-tools"]
+    "tags": [
+      "ml",
+      "open-source",
+      "python",
+      "pytorch",
+      "nlp",
+      "remote",
+      "developer-tools"
+    ]
   },
   {
     "id": "job-030",
@@ -441,13 +851,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Mercury is banking built for startups. We've redesigned the banking experience from scratch to be fast, delightful, and startup-friendly. As a Full Stack Engineer on the Consumer team, you'll build features that founders depend on daily — from wire transfers to financial analytics. We're a small team that ships constantly, and you'll have a huge say in what we build.",
-    "requirements": ["Haskell or Elm (nice to have)", "TypeScript", "React", "PostgreSQL", "Stripe or Plaid APIs", "Financial systems"],
+    "requirements": [
+      "Haskell or Elm (nice to have)",
+      "TypeScript",
+      "React",
+      "PostgreSQL",
+      "Stripe or Plaid APIs",
+      "Financial systems"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://mercury.com/jobs",
+    "source_url": "https://jobs.lever.co/mercury",
     "posted_date": "2026-02-28",
-    "tags": ["fintech", "full-stack", "react", "typescript", "startup", "remote", "banking"]
+    "tags": [
+      "fintech",
+      "full-stack",
+      "react",
+      "typescript",
+      "startup",
+      "remote",
+      "banking"
+    ]
   },
   {
     "id": "job-031",
@@ -456,13 +881,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Plaid is the data network that powers the fintech ecosystem. We connect consumers with their financial data and enable thousands of apps and services. As a Backend Engineer, you'll build the APIs and infrastructure that process millions of financial data requests daily — from bank account connections to transaction enrichment. Strong reliability and API design skills required.",
-    "requirements": ["Go", "PostgreSQL", "AWS", "gRPC", "API design", "Financial data"],
+    "requirements": [
+      "Go",
+      "PostgreSQL",
+      "AWS",
+      "gRPC",
+      "API design",
+      "Financial data"
+    ],
     "salary_range": "$160K - $220K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://plaid.com/careers",
+    "source_url": "https://boards.greenhouse.io/plaid",
     "posted_date": "2026-02-20",
-    "tags": ["fintech", "backend", "go", "api", "distributed", "banking"]
+    "tags": [
+      "fintech",
+      "backend",
+      "go",
+      "api",
+      "distributed",
+      "banking"
+    ]
   },
   {
     "id": "job-032",
@@ -471,13 +910,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Replit is the world's leading AI-powered software development platform, used by 30M+ developers. We're building the future of programming — from AI coding assistants to collaborative cloud IDEs. As an ML Engineer, you'll work on Ghostwriter, our AI coding assistant — improving code completion, generation, and explanation using fine-tuned models and RAG.",
-    "requirements": ["Python", "PyTorch", "LLM fine-tuning", "RAG", "Code generation models", "TypeScript (nice to have)"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "LLM fine-tuning",
+      "RAG",
+      "Code generation models",
+      "TypeScript (nice to have)"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://replit.com/careers",
+    "source_url": "https://jobs.ashby.com/replit",
     "posted_date": "2026-02-25",
-    "tags": ["ml", "llm", "code-generation", "rag", "python", "remote", "devtools"]
+    "tags": [
+      "ml",
+      "llm",
+      "code-generation",
+      "rag",
+      "python",
+      "remote",
+      "devtools"
+    ]
   },
   {
     "id": "job-033",
@@ -486,13 +940,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Twilio powers real-time communication through APIs for voice, SMS, video, and email. Our API team builds the interfaces that millions of developers use to communicate with their customers. You'll work on high-throughput, low-latency APIs that process billions of messages annually, designing systems for reliability and developer ergonomics.",
-    "requirements": ["Java or Go", "REST API design", "PostgreSQL", "Kafka", "AWS", "Distributed systems"],
+    "requirements": [
+      "Java or Go",
+      "REST API design",
+      "PostgreSQL",
+      "Kafka",
+      "AWS",
+      "Distributed systems"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://twilio.com/careers",
+    "source_url": "https://boards.greenhouse.io/twilio",
     "posted_date": "2026-02-18",
-    "tags": ["api", "communications", "java", "go", "distributed", "remote"]
+    "tags": [
+      "api",
+      "communications",
+      "java",
+      "go",
+      "distributed",
+      "remote"
+    ]
   },
   {
     "id": "job-034",
@@ -501,13 +969,28 @@
     "location": "Remote",
     "remote": true,
     "description": "GitHub is where the world builds software. Our AI Features team works on GitHub Copilot and other AI-powered tools that help developers write better code faster. You'll integrate LLM capabilities into GitHub's core products — from pull request summaries to code review assistance — serving 100M+ developers worldwide.",
-    "requirements": ["TypeScript", "Python", "LLM APIs", "GitHub APIs", "React", "Large-scale web systems"],
+    "requirements": [
+      "TypeScript",
+      "Python",
+      "LLM APIs",
+      "GitHub APIs",
+      "React",
+      "Large-scale web systems"
+    ],
     "salary_range": "$160K - $220K",
     "company_stage": "Acquired (Microsoft)",
     "source": "seed",
-    "source_url": "https://github.com/about/careers",
+    "source_url": "https://boards.greenhouse.io/github",
     "posted_date": "2026-02-15",
-    "tags": ["ai", "copilot", "typescript", "python", "developer-tools", "remote", "llm"]
+    "tags": [
+      "ai",
+      "copilot",
+      "typescript",
+      "python",
+      "developer-tools",
+      "remote",
+      "llm"
+    ]
   },
   {
     "id": "job-035",
@@ -516,13 +999,26 @@
     "location": "Remote",
     "remote": true,
     "description": "Brex is the all-in-one financial stack for growing businesses. Our Payments team processes billions in transactions monthly — from corporate cards to wire transfers to expense reimbursements. You'll build reliable, compliant payment systems working with card networks, ACH, and wire infrastructure. Strong backend skills and attention to correctness are essential in financial systems.",
-    "requirements": ["Elixir or Go", "PostgreSQL", "Event-driven architecture", "Payment processing", "Financial compliance"],
+    "requirements": [
+      "Elixir or Go",
+      "PostgreSQL",
+      "Event-driven architecture",
+      "Payment processing",
+      "Financial compliance"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://brex.com/careers",
+    "source_url": "https://boards.greenhouse.io/brex",
     "posted_date": "2026-02-22",
-    "tags": ["fintech", "payments", "backend", "elixir", "go", "remote"]
+    "tags": [
+      "fintech",
+      "payments",
+      "backend",
+      "elixir",
+      "go",
+      "remote"
+    ]
   },
   {
     "id": "job-036",
@@ -531,13 +1027,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Weaviate is an open-source vector database that enables AI-powered search at scale. Our core engineering team builds the vector indexing algorithms, query engine, and distributed architecture that power semantic search for thousands of companies. If you're passionate about information retrieval, approximate nearest neighbor algorithms, and building database internals, this is your role.",
-    "requirements": ["Go", "Vector databases", "HNSW or IVF algorithms", "Distributed systems", "gRPC", "Python (for SDKs)"],
+    "requirements": [
+      "Go",
+      "Vector databases",
+      "HNSW or IVF algorithms",
+      "Distributed systems",
+      "gRPC",
+      "Python (for SDKs)"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://weaviate.io/company/careers",
+    "source_url": "https://jobs.ashby.com/weaviate",
     "posted_date": "2026-02-28",
-    "tags": ["vector-search", "database", "go", "open-source", "remote", "ml-infra"]
+    "tags": [
+      "vector-search",
+      "database",
+      "go",
+      "open-source",
+      "remote",
+      "ml-infra"
+    ]
   },
   {
     "id": "job-037",
@@ -546,13 +1056,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Synthesis is building the world's best AI tutor for kids, originally spun out of Elon Musk's Ad Astra school. We combine game design and AI to make learning math and reasoning genuinely fun. As a Full Stack Engineer, you'll build interactive learning experiences, real-time multiplayer educational games, and the AI personalization engine that adapts to each student.",
-    "requirements": ["TypeScript", "React", "Node.js", "WebSockets", "PostgreSQL", "Game development fundamentals"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "WebSockets",
+      "PostgreSQL",
+      "Game development fundamentals"
+    ],
     "salary_range": "$130K - $175K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://synthesis.com/careers",
+    "source_url": "https://jobs.ashby.com/synthesis",
     "posted_date": "2026-02-14",
-    "tags": ["edtech", "full-stack", "react", "typescript", "ai", "remote", "startup"]
+    "tags": [
+      "edtech",
+      "full-stack",
+      "react",
+      "typescript",
+      "ai",
+      "remote",
+      "startup"
+    ]
   },
   {
     "id": "job-038",
@@ -561,13 +1086,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Modular is reimagining AI infrastructure from the ground up. We built Mojo — a new programming language for AI that brings Python syntax with C performance. As a Compiler/Runtime Engineer, you'll work on the Mojo compiler, MLIR-based optimization passes, and the MAX engine for deploying AI models at peak efficiency. Deep systems knowledge required.",
-    "requirements": ["C++", "LLVM or MLIR", "Compiler design", "Python", "GPU programming (CUDA/ROCm)", "ML model deployment"],
+    "requirements": [
+      "C++",
+      "LLVM or MLIR",
+      "Compiler design",
+      "Python",
+      "GPU programming (CUDA/ROCm)",
+      "ML model deployment"
+    ],
     "salary_range": "$180K - $250K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://modular.com/company/careers",
+    "source_url": "https://jobs.ashby.com/modular",
     "posted_date": "2026-02-25",
-    "tags": ["compiler", "systems", "c++", "mlir", "ml-infra", "remote", "research"]
+    "tags": [
+      "compiler",
+      "systems",
+      "c++",
+      "mlir",
+      "ml-infra",
+      "remote",
+      "research"
+    ]
   },
   {
     "id": "job-039",
@@ -576,13 +1116,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Anthropic is looking for engineers passionate about AI safety who want to build the tools that help us understand and align AI systems. You'll work on interpretability tooling, evaluation frameworks, and red-teaming infrastructure. This is a unique opportunity to work at the frontier of AI safety research while shipping real engineering work that matters for the future of AI.",
-    "requirements": ["Python", "PyTorch", "ML interpretability", "Statistical analysis", "Data visualization", "Research engineering mindset"],
+    "requirements": [
+      "Python",
+      "PyTorch",
+      "ML interpretability",
+      "Statistical analysis",
+      "Data visualization",
+      "Research engineering mindset"
+    ],
     "salary_range": "$170K - $240K",
     "company_stage": "Private",
     "source": "seed",
-    "source_url": "https://anthropic.com/careers",
+    "source_url": "https://boards.greenhouse.io/anthropic",
     "posted_date": "2026-03-01",
-    "tags": ["ai-safety", "ml", "python", "research", "interpretability", "alignment"]
+    "tags": [
+      "ai-safety",
+      "ml",
+      "python",
+      "research",
+      "interpretability",
+      "alignment"
+    ]
   },
   {
     "id": "job-040",
@@ -591,13 +1145,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Supabase is the open source Firebase alternative, giving developers a Postgres database, authentication, storage, and real-time subscriptions out of the box. Our Platform team manages the infrastructure that hosts hundreds of thousands of databases worldwide. You'll work on Kubernetes orchestration, PostgreSQL optimization, and the developer tooling that makes Supabase magical.",
-    "requirements": ["Go", "PostgreSQL", "Kubernetes", "Terraform", "Open source mindset", "Linux systems"],
+    "requirements": [
+      "Go",
+      "PostgreSQL",
+      "Kubernetes",
+      "Terraform",
+      "Open source mindset",
+      "Linux systems"
+    ],
     "salary_range": "$130K - $175K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://supabase.com/careers",
+    "source_url": "https://boards.greenhouse.io/supabase",
     "posted_date": "2026-02-20",
-    "tags": ["platform", "go", "postgresql", "kubernetes", "open-source", "remote", "devtools"]
+    "tags": [
+      "platform",
+      "go",
+      "postgresql",
+      "kubernetes",
+      "open-source",
+      "remote",
+      "devtools"
+    ]
   },
   {
     "id": "job-041",
@@ -606,13 +1175,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Harvey is building AI for the legal profession, working with elite law firms and enterprises to automate legal research, document drafting, and due diligence. As a Software Engineer, you'll build the LLM-powered workflows that help lawyers work faster and smarter — from RAG-based legal research to document analysis pipelines. Strong interest in applying AI to professional domains required.",
-    "requirements": ["Python", "LLM APIs", "RAG", "Document processing", "FastAPI", "Legal domain interest"],
+    "requirements": [
+      "Python",
+      "LLM APIs",
+      "RAG",
+      "Document processing",
+      "FastAPI",
+      "Legal domain interest"
+    ],
     "salary_range": "$150K - $210K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://harvey.ai/careers",
+    "source_url": "https://jobs.ashby.com/harvey",
     "posted_date": "2026-02-28",
-    "tags": ["llm", "legal-tech", "rag", "python", "ai-applications", "startup"]
+    "tags": [
+      "llm",
+      "legal-tech",
+      "rag",
+      "python",
+      "ai-applications",
+      "startup"
+    ]
   },
   {
     "id": "job-042",
@@ -621,13 +1204,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Fly.io is the platform for running apps close to users worldwide. We built the infrastructure layer on top of hardware — physical servers, Anycast networking, and our own orchestration system. As an Infrastructure Engineer, you'll work on our Firecracker-based VM platform, global networking, and the distributed systems that keep apps running reliably across 30+ regions.",
-    "requirements": ["Go or Rust", "Linux kernel", "Networking", "Firecracker or similar", "Distributed systems", "Elixir (nice to have)"],
+    "requirements": [
+      "Go or Rust",
+      "Linux kernel",
+      "Networking",
+      "Firecracker or similar",
+      "Distributed systems",
+      "Elixir (nice to have)"
+    ],
     "salary_range": "$150K - $200K",
     "company_stage": "Series B",
     "source": "seed",
     "source_url": "https://fly.io/careers",
     "posted_date": "2026-02-15",
-    "tags": ["infrastructure", "go", "rust", "networking", "distributed", "remote"]
+    "tags": [
+      "infrastructure",
+      "go",
+      "rust",
+      "networking",
+      "distributed",
+      "remote"
+    ]
   },
   {
     "id": "job-043",
@@ -636,13 +1233,27 @@
     "location": "San Francisco, CA",
     "remote": false,
     "description": "Cursor is the AI-first code editor, built on top of VS Code. We're building the editor that lets developers ship software faster by deeply integrating AI throughout the development workflow. As a Software Engineer, you'll work on the core editor features, AI integrations, and the platform that hundreds of thousands of developers use daily. The team is small and moves extremely fast.",
-    "requirements": ["TypeScript", "Electron or VS Code APIs", "LLM APIs", "React", "Product intuition"],
+    "requirements": [
+      "TypeScript",
+      "Electron or VS Code APIs",
+      "LLM APIs",
+      "React",
+      "Product intuition"
+    ],
     "salary_range": "$160K - $220K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://cursor.com/careers",
+    "source_url": "https://jobs.ashby.com/cursor",
     "posted_date": "2026-03-02",
-    "tags": ["ai", "devtools", "typescript", "editor", "startup", "llm", "product"]
+    "tags": [
+      "ai",
+      "devtools",
+      "typescript",
+      "editor",
+      "startup",
+      "llm",
+      "product"
+    ]
   },
   {
     "id": "job-044",
@@ -651,13 +1262,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Airbyte is the open-source data integration platform, helping companies move data from 300+ sources into their warehouses, lakes, and databases. Our engineering team builds and maintains the connector ecosystem, orchestration engine, and platform infrastructure. You'll work on Spark-based data processing, dbt integrations, and the tools that make data pipelines reliable and fast.",
-    "requirements": ["Python", "Spark or Beam", "SQL", "Kafka", "dbt", "Docker", "Data warehouses (Snowflake, BigQuery)"],
+    "requirements": [
+      "Python",
+      "Spark or Beam",
+      "SQL",
+      "Kafka",
+      "dbt",
+      "Docker",
+      "Data warehouses (Snowflake, BigQuery)"
+    ],
     "salary_range": "$130K - $175K",
     "company_stage": "Series C",
     "source": "seed",
-    "source_url": "https://airbyte.com/careers",
+    "source_url": "https://boards.greenhouse.io/airbyte",
     "posted_date": "2026-02-22",
-    "tags": ["data-engineering", "python", "spark", "etl", "open-source", "remote"]
+    "tags": [
+      "data-engineering",
+      "python",
+      "spark",
+      "etl",
+      "open-source",
+      "remote"
+    ]
   },
   {
     "id": "job-045",
@@ -666,13 +1292,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Nabla builds AI for healthcare professionals — ambient AI that turns patient conversations into clinical notes, saving doctors 2+ hours daily. As a Software Engineer, you'll work on our real-time speech-to-text pipeline, medical LLM fine-tuning, and the API platform that integrates with EHR systems. Passion for applying AI to meaningful problems in healthcare is a must.",
-    "requirements": ["Python", "FastAPI", "LLMs", "Speech processing", "HL7 FHIR (nice to have)", "HIPAA compliance awareness"],
+    "requirements": [
+      "Python",
+      "FastAPI",
+      "LLMs",
+      "Speech processing",
+      "HL7 FHIR (nice to have)",
+      "HIPAA compliance awareness"
+    ],
     "salary_range": "$130K - $180K",
     "company_stage": "Series B",
     "source": "seed",
-    "source_url": "https://nabla.com/careers",
+    "source_url": "https://jobs.lever.co/nabla",
     "posted_date": "2026-02-18",
-    "tags": ["healthcare", "ai", "llm", "python", "remote", "speech", "startup"]
+    "tags": [
+      "healthcare",
+      "ai",
+      "llm",
+      "python",
+      "remote",
+      "speech",
+      "startup"
+    ]
   },
   {
     "id": "job-046",
@@ -681,13 +1322,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Honeycomb is the observability platform for engineering teams who care deeply about understanding their production systems. We invented dynamic sampling and high-cardinality event data for debugging. As a Software Engineer on our Core team, you'll work on our column-store database, query engine, and the ingestion pipeline that processes trillions of events monthly.",
-    "requirements": ["Go", "Distributed systems", "Column-oriented databases", "OpenTelemetry", "Time series data", "Kafka"],
+    "requirements": [
+      "Go",
+      "Distributed systems",
+      "Column-oriented databases",
+      "OpenTelemetry",
+      "Time series data",
+      "Kafka"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://honeycomb.io/careers",
+    "source_url": "https://boards.greenhouse.io/honeycomb",
     "posted_date": "2026-02-24",
-    "tags": ["observability", "go", "distributed", "database", "devtools", "remote"]
+    "tags": [
+      "observability",
+      "go",
+      "distributed",
+      "database",
+      "devtools",
+      "remote"
+    ]
   },
   {
     "id": "job-047",
@@ -696,13 +1351,28 @@
     "location": "Remote",
     "remote": true,
     "description": "Dust is building the AI operations platform for enterprise teams — bringing Claude, GPT-4, and other LLMs into company workflows through a no-code builder. As a Full Stack Engineer, you'll work on our workflow builder, agent execution engine, and integrations with Slack, Notion, GitHub, and other enterprise tools. Small team, large ambitions.",
-    "requirements": ["TypeScript", "React", "Node.js", "LLM APIs", "PostgreSQL", "Startup mindset"],
+    "requirements": [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "LLM APIs",
+      "PostgreSQL",
+      "Startup mindset"
+    ],
     "salary_range": "$120K - $170K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://dust.tt/careers",
+    "source_url": "https://jobs.ashby.com/dust",
     "posted_date": "2026-02-20",
-    "tags": ["ai", "llm", "full-stack", "typescript", "enterprise", "remote", "startup"]
+    "tags": [
+      "ai",
+      "llm",
+      "full-stack",
+      "typescript",
+      "enterprise",
+      "remote",
+      "startup"
+    ]
   },
   {
     "id": "job-048",
@@ -711,13 +1381,27 @@
     "location": "Remote",
     "remote": true,
     "description": "Snyk helps developers build secure software. Our platform scans code, dependencies, containers, and IaC for vulnerabilities and helps teams remediate them fast. As a Security Engineer, you'll build the vulnerability detection algorithms, integrations with CI/CD pipelines, and the developer experience that makes security feel like a feature, not a chore.",
-    "requirements": ["TypeScript or Go", "Security fundamentals", "Static analysis", "GitHub/GitLab integrations", "Docker/Kubernetes", "REST APIs"],
+    "requirements": [
+      "TypeScript or Go",
+      "Security fundamentals",
+      "Static analysis",
+      "GitHub/GitLab integrations",
+      "Docker/Kubernetes",
+      "REST APIs"
+    ],
     "salary_range": "$140K - $190K",
     "company_stage": "Public",
     "source": "seed",
-    "source_url": "https://snyk.io/careers",
+    "source_url": "https://boards.greenhouse.io/snyk",
     "posted_date": "2026-02-16",
-    "tags": ["security", "devtools", "typescript", "go", "devops", "remote"]
+    "tags": [
+      "security",
+      "devtools",
+      "typescript",
+      "go",
+      "devops",
+      "remote"
+    ]
   },
   {
     "id": "job-049",
@@ -726,13 +1410,26 @@
     "location": "Remote",
     "remote": true,
     "description": "Vercel's backend team is looking for a new grad to join us in building the infrastructure that powers Next.js deployments globally. You'll work on our edge runtime, CDN caching, and the API layer that powers millions of sites. Great opportunity for someone who wants to work on distributed systems at real scale early in their career, with mentorship from experienced engineers.",
-    "requirements": ["Go or Rust", "Basic distributed systems knowledge", "CS fundamentals", "Eagerness to learn"],
+    "requirements": [
+      "Go or Rust",
+      "Basic distributed systems knowledge",
+      "CS fundamentals",
+      "Eagerness to learn"
+    ],
     "salary_range": "$120K - $145K",
     "company_stage": "Series D",
     "source": "seed",
-    "source_url": "https://vercel.com/careers",
+    "source_url": "https://boards.greenhouse.io/vercel",
     "posted_date": "2026-03-01",
-    "tags": ["new-grad", "backend", "go", "distributed", "remote", "edge", "entry-level"]
+    "tags": [
+      "new-grad",
+      "backend",
+      "go",
+      "distributed",
+      "remote",
+      "edge",
+      "entry-level"
+    ]
   },
   {
     "id": "job-050",
@@ -741,12 +1438,27 @@
     "location": "Remote",
     "remote": true,
     "description": "LangChain is the most popular framework for building applications with LLMs, used by hundreds of thousands of developers worldwide. Our team is building LangGraph, LangSmith, and the next generation of agent orchestration tools. You'll work on multi-agent frameworks, memory systems, and the observability tooling that helps developers understand and debug their AI applications.",
-    "requirements": ["Python", "LLM APIs", "Async programming", "Graph algorithms", "Open source contribution", "TypeScript (nice to have)"],
+    "requirements": [
+      "Python",
+      "LLM APIs",
+      "Async programming",
+      "Graph algorithms",
+      "Open source contribution",
+      "TypeScript (nice to have)"
+    ],
     "salary_range": "$130K - $180K",
     "company_stage": "Series A",
     "source": "seed",
-    "source_url": "https://langchain.com/careers",
+    "source_url": "https://jobs.lever.co/langchain",
     "posted_date": "2026-02-28",
-    "tags": ["llm", "agents", "python", "open-source", "remote", "ai-framework", "startup"]
+    "tags": [
+      "llm",
+      "agents",
+      "python",
+      "open-source",
+      "remote",
+      "ai-framework",
+      "startup"
+    ]
   }
 ]

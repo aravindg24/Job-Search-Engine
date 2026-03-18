@@ -6,16 +6,37 @@ import logging
 import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
+from collections import Counter
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from models import SearchRequest, SearchResponse, ExplainRequest, ExplainResponse
-from search.vector_store import create_collection, count
+from models import (
+    SearchRequest, SearchResponse,
+    ExplainRequest, ExplainResponse,
+    ResumeProfileResponse,
+    PitchRequest, PitchResponse,
+    GapAnalysisResponse,
+    TrackRequest, TrackerResponse, TrackerStats, TrackedJob,
+    WatchRequest, DigestResponse, DigestJob,
+)
+from search.vector_store import create_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
+from search.gaps import analyze_gaps
+from search.embedder import embed
+from search.reranker import rerank
+from resume.parser import extract_text
+from resume.profiler import parse_profile, build_search_context
+from pitch.generator import generate_pitch
+from database import (
+    save_resume_profile, get_resume_profile,
+    upsert_tracked_job, get_tracked_jobs, delete_tracked_job,
+    save_watch_preferences, get_watch_preferences, update_watch_last_checked,
+    save_search,
+)
 from indexer import main as run_indexer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -34,7 +55,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="RoleGPT API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="RoleGPT API", version="2.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,28 +66,53 @@ app.add_middleware(
 )
 
 
+# ── Health ─────────────────────────────────────────────────────────────────────
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "jobs_indexed": count()}
 
+
+# ── Search ─────────────────────────────────────────────────────────────────────
 
 @app.post("/api/search", response_model=SearchResponse)
 async def search(req: SearchRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
+    # Enrich query with resume context if available
+    enriched_query = req.query
+    profile_row = get_resume_profile()
+    resume_profile = None
+    if profile_row:
+        resume_profile = profile_row.get("parsed_profile", {})
+        context = build_search_context(resume_profile)
+        enriched_query = f"{context}\n\nLooking for: {req.query}"
+
     results = run_search(
-        query=req.query,
+        query=enriched_query,
         top_k=req.top_k,
         filters=req.filters,
+        resume_profile=resume_profile,
     )
+
+    # Save search to Supabase history
+    search_record = None
+    try:
+        top_score = results[0].match_score if results else None
+        search_record = save_search(req.query, len(results), top_score)
+    except Exception as e:
+        logger.warning(f"Could not save search history: {e}")
 
     return SearchResponse(
         results=results,
         total=len(results),
         query=req.query,
+        search_id=search_record.get("id") if search_record else None,
     )
 
+
+# ── Explain ────────────────────────────────────────────────────────────────────
 
 @app.post("/api/explain", response_model=ExplainResponse)
 async def explain(req: ExplainRequest):
@@ -80,3 +126,285 @@ async def explain(req: ExplainRequest):
         gaps=result.get("gaps", []),
         suggestion=result.get("suggestion", ""),
     )
+
+
+# ── Resume ─────────────────────────────────────────────────────────────────────
+
+@app.post("/api/resume/upload")
+async def upload_resume(file: UploadFile = File(...)):
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+
+    pdf_bytes = await file.read()
+    if len(pdf_bytes) > 10 * 1024 * 1024:  # 10 MB limit
+        raise HTTPException(status_code=400, detail="File too large. Max 10 MB.")
+
+    try:
+        raw_text = extract_text(pdf_bytes)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    parsed = parse_profile(raw_text)
+
+    try:
+        row = save_resume_profile(raw_text, parsed)
+    except Exception as e:
+        logger.error(f"Failed to save resume to Supabase: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save resume profile.")
+
+    return {
+        "message": "Resume uploaded and parsed successfully.",
+        "profile": parsed,
+        "id": row.get("id"),
+    }
+
+
+@app.get("/api/resume/profile")
+async def get_profile():
+    row = get_resume_profile()
+    if not row:
+        raise HTTPException(status_code=404, detail="No resume profile found. Please upload a resume.")
+    return {
+        "id": row.get("id"),
+        "parsed_profile": row.get("parsed_profile"),
+        "uploaded_at": row.get("uploaded_at"),
+    }
+
+
+# ── Pitch ──────────────────────────────────────────────────────────────────────
+
+@app.post("/api/pitch", response_model=PitchResponse)
+async def pitch(req: PitchRequest):
+    valid_types = {"cover_letter_hook", "cold_email", "why_interested"}
+    if req.pitch_type not in valid_types:
+        raise HTTPException(status_code=400, detail=f"pitch_type must be one of {valid_types}")
+
+    # Fetch job from Qdrant
+    from search.vector_store import get_client, _to_uuid
+    client = get_client()
+    results = client.retrieve(
+        collection_name=settings.qdrant_collection,
+        ids=[_to_uuid(req.job_id)],
+        with_payload=True,
+    )
+    if not results:
+        raise HTTPException(status_code=404, detail=f"Job {req.job_id} not found.")
+
+    job = results[0].payload
+
+    # Get resume profile
+    profile_row = get_resume_profile()
+    resume_profile = profile_row.get("parsed_profile", {}) if profile_row else {}
+
+    result = generate_pitch(resume_profile, job, req.pitch_type)
+
+    return PitchResponse(
+        pitch=result.get("pitch", ""),
+        key_mappings=result.get("key_mappings", []),
+        framing_advice=result.get("framing_advice", ""),
+        pitch_type=req.pitch_type,
+    )
+
+
+# ── Gap Analysis ───────────────────────────────────────────────────────────────
+
+@app.get("/api/gaps", response_model=GapAnalysisResponse)
+async def gaps(search_id: int = Query(None)):
+    """
+    Returns gap analysis based on the latest search results (or filtered by search_id).
+    Re-runs the last search query to get fresh results for gap computation.
+    """
+    profile_row = get_resume_profile()
+    resume_profile = profile_row.get("parsed_profile", {}) if profile_row else None
+
+    # Get recent jobs from Qdrant to analyze (use a broad search)
+    if resume_profile:
+        query_text = build_search_context(resume_profile)
+    else:
+        query_text = "software engineer developer"
+
+    query_vec = embed(query_text)
+    raw_results = vector_search(query_vec, top_k=15)
+
+    result = analyze_gaps(raw_results, resume_profile)
+    return GapAnalysisResponse(**result)
+
+
+# ── Application Tracker ────────────────────────────────────────────────────────
+
+@app.post("/api/track")
+async def track_job(req: TrackRequest):
+    try:
+        row = upsert_tracked_job(
+            job_id=req.job_id,
+            job_title=req.job_title,
+            company=req.company,
+            match_score=req.match_score,
+            status=req.status,
+            notes=req.notes,
+            pitch=req.pitch,
+            applied_date=req.applied_date,
+        )
+    except Exception as e:
+        logger.error(f"Failed to track job: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save tracked job.")
+
+    return {"message": "Job tracked successfully.", "job": row}
+
+
+@app.get("/api/track", response_model=TrackerResponse)
+async def get_tracker():
+    try:
+        jobs = get_tracked_jobs()
+    except Exception as e:
+        logger.error(f"Failed to fetch tracked jobs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch tracked jobs.")
+
+    status_counts: Counter = Counter(j.get("status", "saved") for j in jobs)
+    stats = TrackerStats(
+        saved=status_counts.get("saved", 0),
+        applied=status_counts.get("applied", 0),
+        interviewing=status_counts.get("interviewing", 0),
+        offered=status_counts.get("offered", 0),
+        rejected=status_counts.get("rejected", 0),
+        withdrawn=status_counts.get("withdrawn", 0),
+    )
+
+    tracked = [
+        TrackedJob(
+            job_id=j.get("job_id", ""),
+            job_title=j.get("job_title"),
+            company=j.get("company"),
+            status=j.get("status", "saved"),
+            match_score=j.get("match_score"),
+            notes=j.get("notes"),
+            pitch=j.get("pitch"),
+            applied_date=j.get("applied_date"),
+            created_at=j.get("created_at"),
+            updated_at=j.get("updated_at"),
+        )
+        for j in jobs
+    ]
+
+    return TrackerResponse(stats=stats, jobs=tracked)
+
+
+@app.delete("/api/track/{job_id}")
+async def remove_tracked_job(job_id: str):
+    deleted = delete_tracked_job(job_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Job not found in tracker.")
+    return {"message": "Job removed from tracker."}
+
+
+# ── Watch / Digest ─────────────────────────────────────────────────────────────
+
+@app.get("/api/watch")
+async def get_watch():
+    prefs = get_watch_preferences()
+    if not prefs:
+        return {"min_match_score": 70, "keywords": [], "locations": [], "company_stages": []}
+    return {
+        "min_match_score": prefs.get("min_match_score", 70),
+        "keywords": prefs.get("keywords", []),
+        "locations": prefs.get("locations", []),
+        "company_stages": prefs.get("company_stages", []),
+    }
+
+
+@app.post("/api/watch")
+async def set_watch(req: WatchRequest):
+    try:
+        row = save_watch_preferences(
+            min_match_score=req.min_match_score,
+            keywords=req.keywords,
+            locations=req.locations,
+            company_stages=req.company_stages,
+        )
+    except Exception as e:
+        logger.error(f"Failed to save watch preferences: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save watch preferences.")
+
+    return {"message": "Watch preferences saved.", "preferences": row}
+
+
+@app.get("/api/digest", response_model=DigestResponse)
+async def get_digest():
+    """
+    Returns new job matches since the last check, based on watch preferences.
+    """
+    prefs = get_watch_preferences()
+    min_score = prefs.get("min_match_score", 70) if prefs else 70
+    last_checked = prefs.get("last_checked_at") if prefs else None
+
+    # Build search query from resume + watch keywords
+    profile_row = get_resume_profile()
+    resume_profile = profile_row.get("parsed_profile", {}) if profile_row else None
+
+    if resume_profile:
+        query_text = build_search_context(resume_profile)
+        if prefs and prefs.get("keywords"):
+            query_text += " " + " ".join(prefs["keywords"])
+    else:
+        keywords = prefs.get("keywords", []) if prefs else []
+        query_text = " ".join(keywords) if keywords else "software engineer"
+
+    query_vec = embed(query_text)
+    raw_results = vector_search(query_vec, top_k=20)
+
+    # Re-rank against resume profile
+    reranked = rerank(query_text, raw_results, resume_profile=resume_profile)
+
+    # Filter by score threshold and (optionally) indexed_at > last_checked
+    digest_jobs = []
+    for item in reranked:
+        score = item.get("match_score", 0) or 0
+        if score < min_score:
+            continue
+        payload = item.get("payload", {})
+
+        # Watch preference filters
+        if prefs:
+            locations = prefs.get("locations", [])
+            stages = prefs.get("company_stages", [])
+            job_loc = payload.get("location", "")
+            job_stage = payload.get("company_stage", "")
+            if locations and not any(loc.lower() in job_loc.lower() for loc in locations):
+                if not payload.get("remote", False):
+                    continue
+            if stages and job_stage and job_stage not in stages:
+                continue
+
+        digest_jobs.append(DigestJob(
+            id=item.get("id", ""),
+            title=payload.get("title", ""),
+            company=payload.get("company", ""),
+            match_score=score,
+            match_reason=item.get("match_reason", ""),
+            posted_date=payload.get("posted_date"),
+            source=payload.get("source", ""),
+        ))
+
+    # Update last_checked
+    try:
+        update_watch_last_checked()
+    except Exception:
+        pass
+
+    return DigestResponse(
+        since=last_checked,
+        new_matches=len(digest_jobs),
+        jobs=digest_jobs[:10],
+    )
+
+
+@app.post("/api/digest/refresh")
+async def refresh_digest():
+    """Manually trigger a re-scrape + re-index of jobs."""
+    try:
+        from indexer import main as run_indexer
+        run_indexer(include_scraped=True)
+        return {"message": "Job index refreshed successfully.", "jobs_indexed": count()}
+    except Exception as e:
+        logger.error(f"Refresh failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Refresh failed: {e}")

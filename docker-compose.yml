@@ -23,6 +23,8 @@ services:
     environment:
       - USE_MEMORY_QDRANT=false
       - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:80,http://localhost
     depends_on:
       - qdrant
     restart: unless-stopped

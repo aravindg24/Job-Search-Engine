@@ -57,7 +57,7 @@ def index_jobs(jobs: list[dict]) -> None:
     logger.info(f"Indexed {len(points)} jobs. Collection now has {count()} points.")
 
 
-def main():
+def main(include_scraped: bool = True):
     create_collection()
 
     # Load seed data
@@ -70,11 +70,12 @@ def main():
         return
 
     # Load any scraped data
-    scraped_path = DATA_DIR / "scraped_jobs.json"
-    if scraped_path.exists():
-        scraped = load_jobs(scraped_path)
-        logger.info(f"Loaded {len(scraped)} scraped jobs")
-        jobs.extend(scraped)
+    if include_scraped:
+        scraped_path = DATA_DIR / "scraped_jobs.json"
+        if scraped_path.exists():
+            scraped = load_jobs(scraped_path)
+            logger.info(f"Loaded {len(scraped)} scraped jobs")
+            jobs.extend(scraped)
 
     index_jobs(jobs)
     logger.info("Indexing complete!")
