@@ -2,7 +2,7 @@
 Search pipeline: embed → vector search → LLM re-rank → format response.
 """
 from typing import List, Optional, Dict, Any
-from search.embedder import embed
+from search.embedder import embed_query
 from search.vector_store import search
 from search.reranker import rerank, explain as reranker_explain
 from models import JobResult, SearchFilters
@@ -18,8 +18,8 @@ def run_search(
     resume_profile: Optional[Dict[str, Any]] = None,
 ) -> List[JobResult]:
     """Full search pipeline: embed → search → rerank → return."""
-    # Step 1: Embed the query
-    query_vector = embed(query)
+    # Step 1: Embed the query (BGE query prefix applied inside embed_query)
+    query_vector = embed_query(query)
 
     # Step 2: Vector search — fetch 2x for re-ranking headroom
     filter_dict = None

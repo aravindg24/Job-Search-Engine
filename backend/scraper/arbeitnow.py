@@ -37,7 +37,7 @@ def scrape(limit: int = 50) -> List[Dict[str, Any]]:
                 "company_stage": None,
                 "source": "arbeitnow",
                 "source_url": item.get("url", ""),
-                "posted_date": item.get("created_at", "")[:10],
+                "posted_date": str(item.get("created_at", ""))[:10] if item.get("created_at") else None,
                 "tags": tags[:10],
             })
 

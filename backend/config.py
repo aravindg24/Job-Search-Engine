@@ -5,18 +5,26 @@ _ENV_FILE = Path(__file__).parent / ".env"
 
 
 class Settings(BaseSettings):
+    # LLM
     cerebras_api_key: str = ""
     cerebras_model: str = "llama3.1-8b"
-    qdrant_host: str = "localhost"
+
+    # Qdrant — cloud takes priority over local when qdrant_cloud_url is set
+    qdrant_cloud_url: str = ""        # e.g. https://xyz.qdrant.io:6333
+    qdrant_api_key: str = ""          # Qdrant Cloud API key
+    qdrant_host: str = "localhost"    # fallback for local Docker
     qdrant_port: int = 6333
     qdrant_collection: str = "jobs"
-    embedding_model: str = "all-MiniLM-L6-v2"
+
+    # Embedding
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+
+    # CORS — comma-separated list of allowed origins
     cors_origins: str = "http://localhost:5173"
-    use_memory_qdrant: bool = True  # Set False when using Docker Qdrant
 
     # Supabase
     supabase_url: str = ""
-    supabase_key: str = ""  # Use the anon/public key (or service_role for server-side)
+    supabase_key: str = ""
 
     class Config:
         env_file = str(_ENV_FILE)

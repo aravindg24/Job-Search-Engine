@@ -3,7 +3,7 @@ Scraper for Hacker News "Who is Hiring?" monthly threads.
 """
 import requests
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from scraper.base import make_id, clean_text, extract_remote
 
 logger = logging.getLogger(__name__)

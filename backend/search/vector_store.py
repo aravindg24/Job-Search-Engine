@@ -6,9 +6,13 @@ from qdrant_client.models import (
     Filter,
     FieldCondition,
     MatchValue,
+    FilterSelector,
+    DatetimeRange,
+    PayloadSchemaType,
 )
 from config import settings
 from typing import List, Dict, Any, Optional
+from datetime import datetime, timedelta, timezone
 import logging
 import uuid
 
@@ -16,7 +20,7 @@ _NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # UUID namespace
 
 logger = logging.getLogger(__name__)
 
-VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output dimension
+VECTOR_SIZE = 384  # bge-small-en-v1.5 and MiniLM both output 384 dims
 
 _client: QdrantClient | None = None
 
@@ -24,12 +28,17 @@ _client: QdrantClient | None = None
 def get_client() -> QdrantClient:
     global _client
     if _client is None:
-        if settings.use_memory_qdrant:
-            logger.info("Using Qdrant in-memory mode")
-            _client = QdrantClient(":memory:")
+        if settings.qdrant_cloud_url:
+            # Production: Qdrant Cloud
+            logger.info(f"Connecting to Qdrant Cloud: {settings.qdrant_cloud_url}")
+            _client = QdrantClient(
+                url=settings.qdrant_cloud_url,
+                api_key=settings.qdrant_api_key,
+            )
         else:
-            logger.info(f"Connecting to Qdrant at {settings.qdrant_host}:{settings.qdrant_port}")
-            _client = QdrantClient(host=settings.qdrant_host, port=settings.qdrant_port)
+            # Local development: in-memory
+            logger.info("Using Qdrant in-memory mode (local dev)")
+            _client = QdrantClient(":memory:")
     return _client
 
 
@@ -44,6 +53,17 @@ def create_collection() -> None:
         logger.info(f"Created collection: {settings.qdrant_collection}")
     else:
         logger.info(f"Collection '{settings.qdrant_collection}' already exists.")
+
+    # Ensure indexed_at payload index exists for date-range cleanup queries
+    try:
+        client.create_payload_index(
+            collection_name=settings.qdrant_collection,
+            field_name="indexed_at",
+            field_schema=PayloadSchemaType.DATETIME,
+        )
+        logger.info("Payload index on 'indexed_at' ensured.")
+    except Exception as e:
+        logger.debug(f"indexed_at index already exists or skipped: {e}")
 
 
 def _to_uuid(job_id: str) -> str:
@@ -106,6 +126,33 @@ def search(
         {"score": r.score, "payload": r.payload, "id": r.payload.get("original_id", str(r.id))}
         for r in results
     ]
+
+
+def delete_old_jobs(days: int = 90) -> int:
+    """Delete jobs indexed more than `days` ago. Returns count deleted."""
+    client = get_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+    try:
+        result = client.delete(
+            collection_name=settings.qdrant_collection,
+            points_selector=FilterSelector(
+                filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="indexed_at",
+                            range=DatetimeRange(lt=cutoff),
+                        )
+                    ]
+                )
+            ),
+        )
+        deleted = getattr(result, "operation_id", 0)
+        logger.info(f"Cleanup: deleted jobs older than {days} days (cutoff: {cutoff})")
+        return deleted
+    except Exception as e:
+        logger.warning(f"Cleanup skipped (indexed_at field may not exist yet): {e}")
+        return 0
 
 
 def count() -> int:

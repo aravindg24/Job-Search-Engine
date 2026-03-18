@@ -1,17 +1,20 @@
 """
-Indexer: Load seed jobs (and scraped jobs) → embed → store in Qdrant.
-Run: python indexer.py
+Indexer: scrape all sources → deduplicate → embed → upsert to Qdrant → cleanup old jobs.
+
+Run locally:   python indexer.py
+Run in CI:     python indexer.py  (same command, cloud Qdrant via env vars)
 """
 import json
 import sys
+import hashlib
 import logging
 from pathlib import Path
+from datetime import datetime, timezone
 
-# Allow imports from backend root
 sys.path.insert(0, str(Path(__file__).parent))
 
 from search.embedder import embed_batch
-from search.vector_store import create_collection, upsert_batch, count
+from search.vector_store import create_collection, upsert_batch, count, delete_old_jobs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -32,9 +35,83 @@ def build_text(job: dict) -> str:
     return " | ".join(p for p in parts if p)
 
 
-def load_jobs(path: Path) -> list[dict]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def dedup(jobs: list[dict]) -> list[dict]:
+    """
+    Deduplicate jobs by source_url hash.
+    If source_url is missing, fall back to id.
+    Last occurrence wins (scraped jobs override seed data).
+    """
+    seen: dict[str, dict] = {}
+    for job in jobs:
+        key = job.get("source_url") or job.get("id", "")
+        key_hash = hashlib.md5(key.encode()).hexdigest()
+        seen[key_hash] = job
+    unique = list(seen.values())
+    logger.info(f"Dedup: {len(jobs)} → {len(unique)} unique jobs")
+    return unique
+
+
+def stamp_indexed_at(jobs: list[dict]) -> list[dict]:
+    """Add indexed_at timestamp to jobs that don't have one (seed data)."""
+    now = datetime.now(timezone.utc).isoformat()
+    for job in jobs:
+        if not job.get("indexed_at"):
+            job["indexed_at"] = now
+    return jobs
+
+
+def load_seed_jobs() -> list[dict]:
+    path = DATA_DIR / "seed_jobs.json"
+    if not path.exists():
+        logger.warning("seed_jobs.json not found — skipping seed data")
+        return []
+    with open(path, encoding="utf-8") as f:
+        jobs = json.load(f)
+    logger.info(f"Loaded {len(jobs)} seed jobs")
+    return jobs
+
+
+def load_scraped_jobs() -> list[dict]:
+    """Run all live scrapers and return combined results."""
+    scraped = []
+
+    # 1. SimplifyJobs GitHub (new grad roles, 7-day filter)
+    try:
+        from scraper.simplify_github import scrape as scrape_simplify
+        jobs = scrape_simplify(max_age_days=7)
+        logger.info(f"SimplifyJobs: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"SimplifyJobs scraper failed: {e}")
+
+    # 2. Arbeitnow API (free, no auth required)
+    try:
+        from scraper.arbeitnow import scrape as scrape_arbeitnow
+        jobs = scrape_arbeitnow()
+        logger.info(f"Arbeitnow: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"Arbeitnow scraper failed: {e}")
+
+    # 3. Remotive API (free, remote jobs)
+    try:
+        from scraper.remotive import scrape as scrape_remotive
+        jobs = scrape_remotive()
+        logger.info(f"Remotive: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"Remotive scraper failed: {e}")
+
+    # 4. Hacker News "Who's Hiring"
+    try:
+        from scraper.hackernews import scrape as scrape_hn
+        jobs = scrape_hn()
+        logger.info(f"HackerNews: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"HackerNews scraper failed: {e}")
+
+    return scraped
 
 
 def index_jobs(jobs: list[dict]) -> None:
@@ -42,10 +119,8 @@ def index_jobs(jobs: list[dict]) -> None:
         logger.warning("No jobs to index.")
         return
 
-    logger.info(f"Indexing {len(jobs)} jobs...")
+    logger.info(f"Generating embeddings for {len(jobs)} jobs...")
     texts = [build_text(j) for j in jobs]
-
-    logger.info("Generating embeddings...")
     vectors = embed_batch(texts)
 
     points = [
@@ -60,24 +135,23 @@ def index_jobs(jobs: list[dict]) -> None:
 def main(include_scraped: bool = True):
     create_collection()
 
-    # Load seed data
-    seed_path = DATA_DIR / "seed_jobs.json"
-    if seed_path.exists():
-        jobs = load_jobs(seed_path)
-        logger.info(f"Loaded {len(jobs)} jobs from seed_jobs.json")
-    else:
-        logger.error(f"seed_jobs.json not found at {seed_path}")
-        return
+    # Load all jobs
+    all_jobs = load_seed_jobs()
 
-    # Load any scraped data
     if include_scraped:
-        scraped_path = DATA_DIR / "scraped_jobs.json"
-        if scraped_path.exists():
-            scraped = load_jobs(scraped_path)
-            logger.info(f"Loaded {len(scraped)} scraped jobs")
-            jobs.extend(scraped)
+        scraped = load_scraped_jobs()
+        all_jobs.extend(scraped)
 
-    index_jobs(jobs)
+    # Deduplicate and stamp timestamps
+    all_jobs = dedup(all_jobs)
+    all_jobs = stamp_indexed_at(all_jobs)
+
+    # Index to Qdrant
+    index_jobs(all_jobs)
+
+    # Cleanup jobs older than 90 days (keeps DB lean)
+    delete_old_jobs(days=90)
+
     logger.info("Indexing complete!")
 
 
