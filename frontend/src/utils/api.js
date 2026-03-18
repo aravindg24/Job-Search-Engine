@@ -22,9 +22,7 @@ export const explainMatch = ({ query, job_id }) =>
 export const uploadResume = (file) => {
   const form = new FormData()
   form.append('file', file)
-  return api.post('/resume/upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }).then(r => r.data)
+  return api.post('/resume/upload', form).then(r => r.data)
 }
 
 export const getResumeProfile = () =>
