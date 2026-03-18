@@ -34,7 +34,7 @@ export default function DigestPanel() {
 
       {loading && (
         <div className="space-y-2 animate-pulse">
-          {[1, 2, 3].map(i => <div key={i} className="h-12 bg-zinc-800 rounded-lg" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--surface)' }} />)}
         </div>
       )}
 
@@ -52,7 +52,10 @@ export default function DigestPanel() {
             <div
               key={job.id}
               onClick={() => navigate(`/job/${job.id}`, { state: { job: { ...job, match_score: job.match_score } } })}
-              className="flex items-center gap-3 p-3 bg-zinc-900 border border-border rounded-lg hover:border-zinc-600 cursor-pointer transition-all"
+              className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer transition-all"
+              style={{ backgroundColor: 'var(--surface)' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-4)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
             >
               <MatchBadge score={job.match_score} />
               <div className="flex-1 min-w-0">

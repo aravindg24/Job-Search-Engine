@@ -6,7 +6,7 @@ const COLUMNS = ['saved', 'applied', 'interviewing', 'offered', 'rejected']
 
 function TrackerCard({ job, onStatusChange, onRemove }) {
   return (
-    <div className="bg-zinc-900 border border-border rounded-lg p-3 text-sm">
+    <div className="border border-border rounded-lg p-3 text-sm" style={{ backgroundColor: 'var(--surface)' }}>
       <div className="flex items-start justify-between gap-2 mb-1">
         <div className="min-w-0">
           <p className="text-primary font-medium truncate">{job.job_title || 'Unknown role'}</p>
@@ -27,7 +27,8 @@ function TrackerCard({ job, onStatusChange, onRemove }) {
         <select
           value={job.status}
           onChange={e => onStatusChange(job.job_id, e.target.value)}
-          className="text-xs bg-zinc-800 border border-border rounded px-1.5 py-1 text-secondary flex-1 focus:outline-none"
+          className="text-xs border border-border rounded px-1.5 py-1 text-secondary flex-1 focus:outline-none"
+          style={{ backgroundColor: 'var(--surface-2)', color: 'var(--text-3)' }}
         >
           {COLUMNS.map(s => <option key={s} value={s}>{s}</option>)}
           <option value="withdrawn">withdrawn</option>
@@ -77,8 +78,8 @@ export default function TrackerBoard({ jobs, stats, onStatusChange, onRemove }) 
                   />
                 ))}
                 {colJobs.length === 0 && (
-                  <div className="h-16 border border-dashed border-zinc-800 rounded-lg flex items-center justify-center">
-                    <span className="text-xs text-zinc-700">empty</span>
+                  <div className="h-16 border border-dashed border-border rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-secondary opacity-40">empty</span>
                   </div>
                 )}
               </div>

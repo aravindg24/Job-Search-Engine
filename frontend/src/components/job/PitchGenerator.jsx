@@ -61,7 +61,7 @@ export default function PitchGenerator({ jobId }) {
       {result && (
         <div className="space-y-4">
           {/* The pitch */}
-          <div className="bg-zinc-900 border border-border rounded-xl p-4 relative">
+          <div className="border border-border rounded-xl p-4 relative" style={{ backgroundColor: 'var(--surface)' }}>
             <p className="text-primary text-sm leading-relaxed whitespace-pre-wrap">
               {result.pitch}
             </p>

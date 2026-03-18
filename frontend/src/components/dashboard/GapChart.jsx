@@ -4,7 +4,7 @@ const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="bg-zinc-900 border border-border rounded-lg px-3 py-2 text-xs">
+    <div className="border border-border rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: "var(--surface)" }}>
       <p className="text-primary font-medium">{d.skill}</p>
       <p className="text-secondary">{d.demanded_by} jobs · {d.percentage}%</p>
       {d.status && <p className="text-green-400 mt-0.5">✓ You have this</p>}

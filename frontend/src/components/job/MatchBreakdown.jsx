@@ -18,7 +18,7 @@ export default function MatchBreakdown({ job, query }) {
 
   if (loading) return (
     <div className="space-y-3 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-10 bg-zinc-800 rounded-lg" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-10 rounded-lg" style={{ backgroundColor: 'var(--surface)' }} />)}
     </div>
   )
 
@@ -29,7 +29,7 @@ export default function MatchBreakdown({ job, query }) {
       {/* Score */}
       <div className="flex items-center gap-3">
         <MatchBadge score={explain.match_score} size="lg" />
-        <div className="flex-1 bg-zinc-800 rounded-full h-2">
+        <div className="flex-1 rounded-full h-2" style={{ backgroundColor: 'var(--surface)' }}>
           <div
             className="h-2 rounded-full bg-accent transition-all duration-700"
             style={{ width: `${Math.min(explain.match_score, 100)}%` }}
@@ -69,7 +69,7 @@ export default function MatchBreakdown({ job, query }) {
 
       {/* Advice */}
       {explain.suggestion && (
-        <div className="bg-zinc-900 border border-border rounded-xl p-4 text-sm text-secondary italic leading-relaxed">
+        <div className="border border-border rounded-xl p-4 text-sm text-secondary italic leading-relaxed" style={{ backgroundColor: 'var(--surface)' }}>
           {explain.suggestion}
         </div>
       )}

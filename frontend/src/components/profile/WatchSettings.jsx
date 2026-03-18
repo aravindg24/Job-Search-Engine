@@ -54,7 +54,8 @@ export default function WatchSettings() {
           type="text"
           value={keywords}
           onChange={e => setKeywords(e.target.value)}
-          className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent/50"
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
         />
       </div>
 
@@ -64,7 +65,8 @@ export default function WatchSettings() {
           type="text"
           value={locations}
           onChange={e => setLocations(e.target.value)}
-          className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent/50"
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
         />
       </div>
 
@@ -74,7 +76,8 @@ export default function WatchSettings() {
           type="text"
           value={stages}
           onChange={e => setStages(e.target.value)}
-          className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-primary focus:outline-none focus:border-accent/50"
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
         />
       </div>
 
