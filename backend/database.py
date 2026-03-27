@@ -13,11 +13,10 @@ _admin_client: Optional[Client] = None
 
 
 def get_db() -> Client:
-    """Return a DB client. Uses service_role key (bypasses RLS) if available, else anon key."""
+    """Return a DB client using the anon key. Used for all standard DB + auth operations."""
     global _client
     if _client is None:
-        key = settings.supabase_service_key or settings.supabase_key
-        _client = create_client(settings.supabase_url, key)
+        _client = create_client(settings.supabase_url, settings.supabase_key)
     return _client
 
 
