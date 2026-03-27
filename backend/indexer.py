@@ -9,6 +9,7 @@ for Render's 512 MB free tier. Run this script separately or via GitHub Actions.
 """
 import gc
 import json
+import os
 import sys
 import hashlib
 import logging
@@ -194,11 +195,15 @@ def main(include_scraped: bool = True):
     all_jobs = dedup(all_jobs)
     all_jobs = stamp_indexed_at(all_jobs)
 
-    # Index to Qdrant
+    # Index to Qdrant in memory-safe chunks
     index_jobs(all_jobs)
 
-    # Cleanup jobs older than 90 days (keeps DB lean)
-    delete_old_jobs(days=90)
+    # Delete jobs older than JOB_RETENTION_DAYS (default 2 days / 48 hours).
+    # The GitHub Action sets JOB_RETENTION_DAYS=2 so Qdrant only holds fresh data.
+    # Increase to a larger number locally if you want longer history.
+    retention_days = int(os.environ.get("JOB_RETENTION_DAYS", "2"))
+    logger.info(f"Cleaning up jobs older than {retention_days} day(s)...")
+    delete_old_jobs(days=retention_days)
 
     logger.info("Indexing complete!")
 

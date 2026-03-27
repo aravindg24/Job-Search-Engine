@@ -1,15 +1,20 @@
-name: Daily Job Ingestion
+name: Hourly Job Ingestion
 
 on:
   schedule:
-    # Runs every day at 6 AM UTC
-    - cron: '0 6 * * *'
-  workflow_dispatch:
-    # Allow manual trigger from GitHub Actions UI
+    - cron: '0 * * * *'   # every hour at :00 UTC
+  workflow_dispatch:        # manual trigger from the GitHub Actions UI
+
+# If a new hourly trigger fires while the previous run is still going,
+# cancel the old one so we don't queue up multiple indexing runs.
+concurrency:
+  group: job-ingestion
+  cancel-in-progress: true
 
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 25    # hard stop — scrape + embed should finish in < 15 min
 
     steps:
       - name: Checkout repository
@@ -22,12 +27,39 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
 
-      - name: Install dependencies
+      # The BGE-small model is ~130 MB. Caching it avoids a 60-90s download
+      # on every hourly run. The key is static because model weights never change.
+      - name: Cache HuggingFace model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-bge-small-en-v1.5-v1
+
+      - name: Install Python dependencies
         run: |
           cd backend
           pip install -r requirements.txt
 
-      - name: Run indexer (scrape + embed + upsert to Qdrant Cloud)
+      # Show how many jobs are in Qdrant before the run for comparison.
+      - name: Log job count before ingestion
+        env:
+          QDRANT_CLOUD_URL: ${{ secrets.QDRANT_CLOUD_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          QDRANT_COLLECTION: jobs
+          EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+        run: |
+          cd backend
+          python - <<'EOF'
+          import sys
+          sys.path.insert(0, ".")
+          from search.vector_store import create_collection, count
+          create_collection()
+          print(f"[before] Jobs in Qdrant: {count()}")
+          EOF
+
+      # Main step: scrape all sources, embed in 50-job chunks, upsert to Qdrant Cloud,
+      # then delete anything older than JOB_RETENTION_DAYS (48 hours).
+      - name: Scrape, embed, and upsert jobs
         env:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           QDRANT_CLOUD_URL: ${{ secrets.QDRANT_CLOUD_URL }}
@@ -36,6 +68,23 @@ jobs:
           EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          JOB_RETENTION_DAYS: '2'
         run: |
           cd backend
           python indexer.py
+
+      # Confirm the final count after upsert + cleanup.
+      - name: Log job count after ingestion
+        env:
+          QDRANT_CLOUD_URL: ${{ secrets.QDRANT_CLOUD_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          QDRANT_COLLECTION: jobs
+          EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+        run: |
+          cd backend
+          python - <<'EOF'
+          import sys
+          sys.path.insert(0, ".")
+          from search.vector_store import count
+          print(f"[after]  Jobs in Qdrant: {count()}")
+          EOF
