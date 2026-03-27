@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Query, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
-import jwt
 
 from config import settings
 from models import (
@@ -47,22 +46,21 @@ logger = logging.getLogger(__name__)
 # ── Auth ───────────────────────────────────────────────────────────────────────
 
 def get_current_user(authorization: str = Header(None)) -> str:
-    """Extract and verify Supabase JWT, return user_id (sub claim)."""
+    """Verify Supabase JWT via auth.get_user(), return user_id."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Not authenticated.")
     token = authorization.split(" ", 1)[1]
     try:
-        payload = jwt.decode(
-            token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
-            audience="authenticated",
-        )
-        return payload["sub"]
-    except jwt.ExpiredSignatureError:
+        from database import get_db
+        response = get_db().auth.get_user(token)
+        if not response or not response.user:
+            raise HTTPException(status_code=401, detail="Invalid token.")
+        return response.user.id
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"Auth failed: {e}")
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token.")
 
 
 # ── Startup ────────────────────────────────────────────────────────────────────
