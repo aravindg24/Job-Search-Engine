@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useTheme } from '../hooks/useTheme'
+import PublicNav from '../components/layout/PublicNav'
 
 const stats = [
   {
@@ -42,10 +42,56 @@ const sampleJobs = [
 ]
 
 const coreFeatures = [
-  { icon: '📄', label: 'Resume parsing' },
-  { icon: '🔍', label: 'Semantic search' },
-  { icon: '✍️', label: 'Pitch generator' },
-  { icon: '📊', label: 'Gap analysis' },
+  {
+    label: 'Resume parsing',
+    color: '#5B8AF5',
+    bg: 'rgba(91,138,245,0.14)',
+    icon: (
+      <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Semantic search',
+    color: '#9B66F7',
+    bg: 'rgba(155,102,247,0.14)',
+    icon: (
+      <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+        <path d="M8 11a3 3 0 013-3"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Pitch generator',
+    color: '#FCAA2D',
+    bg: 'rgba(252,170,45,0.14)',
+    icon: (
+      <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Gap analysis',
+    color: '#34D399',
+    bg: 'rgba(52,211,153,0.14)',
+    icon: (
+      <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+        <line x1="2" y1="20" x2="22" y2="20"/>
+      </svg>
+    ),
+  },
 ]
 
 function MatchBar({ pct }) {
@@ -59,66 +105,11 @@ function MatchBar({ pct }) {
 
 export default function LandingPage() {
   const navigate = useNavigate()
-  const { dark, toggle } = useTheme()
 
   return (
     <div style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
 
-      {/* ── Nav ─────────────────────────────────────────────────── */}
-      <nav className="flex items-center justify-between px-6 md:px-16 py-5 sticky top-0 z-40"
-        style={{ backgroundColor: 'var(--bg)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold"
-            style={{ backgroundColor: 'var(--accent)', color: '#000' }}>D</div>
-          <span className="font-semibold text-sm tracking-tight" style={{ color: 'var(--text)' }}>Direct</span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-8">
-          {['Features', 'How it works', 'Pricing'].map(item => (
-            <button key={item} className="text-sm transition-colors duration-150"
-              style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button onClick={toggle} aria-label="Toggle theme"
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150"
-            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-3)'; e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--surface)'; e.currentTarget.style.color = 'var(--text-3)' }}>
-            {dark ? (
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-              </svg>
-            )}
-          </button>
-          <button onClick={() => navigate('/login')}
-            className="text-sm px-4 py-1.5 rounded-lg transition-all duration-150"
-            style={{ color: 'var(--text-3)' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
-            Sign in
-          </button>
-          <button onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-            className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-150"
-            style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-            Get the app
-          </button>
-        </div>
-      </nav>
+      <PublicNav />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
       <section className="px-6 md:px-16 pt-20 pb-16 max-w-7xl mx-auto">
@@ -411,21 +402,33 @@ export default function LandingPage() {
       </section>
 
       {/* ── Core features icons ──────────────────────────────────── */}
-      <section className="px-6 md:px-16 py-16 max-w-7xl mx-auto text-center">
+      <section className="px-6 md:px-16 py-20 max-w-7xl mx-auto text-center">
         <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>
           Everything you need
         </p>
-        <h2 className="text-3xl md:text-4xl mb-12" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+        <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
           Multi-feature support
         </h2>
-        <div className="flex items-center justify-center gap-6 flex-wrap">
+        <p className="text-sm mb-14 max-w-md mx-auto" style={{ color: 'var(--text-3)' }}>
+          From upload to offer — every tool you need for a smarter job search, in one place.
+        </p>
+        <div className="flex items-start justify-center gap-10 flex-wrap">
           {coreFeatures.map(f => (
-            <div key={f.label} className="flex flex-col items-center gap-3 w-28">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl"
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 2px 12px var(--shadow)' }}>
+            <div key={f.label} className="flex flex-col items-center gap-4" style={{ width: 110 }}>
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center transition-transform duration-200"
+                style={{
+                  backgroundColor: f.bg,
+                  border: `1px solid ${f.color}30`,
+                  color: f.color,
+                  boxShadow: `0 4px 20px ${f.color}18`,
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              >
                 {f.icon}
               </div>
-              <span className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>{f.label}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{f.label}</span>
             </div>
           ))}
         </div>

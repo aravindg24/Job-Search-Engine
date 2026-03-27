@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import Header from './components/layout/Header'
 import LandingPage from './pages/LandingPage'
+import FeaturesPage from './pages/FeaturesPage'
+import HowItWorksPage from './pages/HowItWorksPage'
 import SearchPage from './pages/SearchPage'
 import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
@@ -32,6 +34,8 @@ export default function App() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           {/* Protected */}
