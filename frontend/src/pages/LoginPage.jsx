@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../utils/supabase'
 
 export default function LoginPage() {
-  const [mode, setMode] = useState('signin')   // 'signin' | 'signup'
+  const location = useLocation()
+  const [mode, setMode] = useState(location.state?.mode || 'signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
