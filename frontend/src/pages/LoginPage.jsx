@@ -42,7 +42,7 @@ export default function LoginPage() {
             style={{ backgroundColor: 'var(--accent)', color: '#000' }}>
             R
           </div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>RoleGPT</h1>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Direct</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
             {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
           </p>

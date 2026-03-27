@@ -30,7 +30,7 @@ export default function Header() {
       }}
     >
       {/* Logo */}
-      <NavLink to="/" className="flex items-center gap-2.5 group">
+      <NavLink to="/search" className="flex items-center gap-2.5 group">
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-serif font-bold"
           style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
@@ -41,13 +41,13 @@ export default function Header() {
           className="font-semibold tracking-tight text-sm"
           style={{ color: 'var(--text)' }}
         >
-          RoleGPT
+          Direct
         </span>
       </NavLink>
 
       {/* Nav */}
       <nav className="flex items-center gap-7">
-        <NavLink to="/" end className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
+        <NavLink to="/search" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
           Search
         </NavLink>
         <NavLink to="/dashboard" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>

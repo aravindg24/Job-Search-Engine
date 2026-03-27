@@ -1,5 +1,5 @@
 """
-RoleGPT FastAPI backend — multi-user with Supabase Auth.
+Direct FastAPI backend — multi-user with Supabase Auth.
 Run: uvicorn app:app --reload
 """
 import logging
@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="RoleGPT API", version="3.0.0", lifespan=lifespan)
+app = FastAPI(title="Direct API", version="3.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

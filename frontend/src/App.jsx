@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import Header from './components/layout/Header'
+import LandingPage from './pages/LandingPage'
 import SearchPage from './pages/SearchPage'
 import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
@@ -30,15 +31,16 @@ export default function App() {
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
         <Routes>
           {/* Public */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected — all other routes require auth */}
+          {/* Protected */}
           <Route path="/*" element={
             <AuthGuard>
               <Header />
               <main className="flex-1">
                 <Routes>
-                  <Route path="/" element={<SearchPage />} />
+                  <Route path="/search" element={<SearchPage />} />
                   <Route path="/job/:id" element={<JobDetailPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/profile" element={<ProfilePage />} />

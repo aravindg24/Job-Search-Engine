@@ -28,7 +28,7 @@ DATA_DIR = Path(__file__).parent.parent / "backend" / "data"
 
 
 def main():
-    logger.info("=== RoleGPT Job Refresh ===")
+    logger.info("=== Direct Job Refresh ===")
     create_collection()
 
     jobs = []
