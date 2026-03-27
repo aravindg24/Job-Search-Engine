@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../utils/supabase'
+import { getResumeProfile } from '../utils/api'
 
 export default function LoginPage() {
   const location = useLocation()
@@ -34,7 +35,19 @@ export default function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        navigate('/search', { replace: true })
+        // Check if the user already has a resume profile
+        let hasProfile = false
+        try {
+          await getResumeProfile()
+          hasProfile = true
+        } catch {
+          hasProfile = false
+        }
+        if (hasProfile) {
+          navigate('/search', { replace: true })
+        } else {
+          navigate('/profile', { replace: true, state: { onboarding: true } })
+        }
       }
     } catch (err) {
       const msg = err.message || 'Something went wrong.'
