@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import Header from './components/layout/Header'
 import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
@@ -55,6 +56,7 @@ export default function App() {
         </Routes>
         <ToastContainer toasts={toasts} />
         <Analytics />
+        <SpeedInsights />
       </div>
     </BrowserRouter>
   )
