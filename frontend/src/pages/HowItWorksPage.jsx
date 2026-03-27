@@ -208,7 +208,7 @@ export default function HowItWorksPage() {
       <section className="px-6 md:px-16 pb-24 max-w-7xl mx-auto">
         {/* Timeline connector (desktop) */}
         <div className="relative">
-          <div className="space-y-6">
+          <div className="space-y-20">
             {steps.map((step, i) => (
               <div
                 key={step.number}

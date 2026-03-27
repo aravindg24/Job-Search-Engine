@@ -13,7 +13,7 @@ export default function PublicNav() {
 
   return (
     <nav
-      className="flex items-center justify-between px-6 md:px-16 py-5 sticky top-0 z-40"
+      className="grid grid-cols-3 items-center px-6 md:px-16 py-5 sticky top-0 z-40"
       style={{
         backgroundColor: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
@@ -39,7 +39,7 @@ export default function PublicNav() {
       </button>
 
       {/* Center nav links */}
-      <div className="hidden md:flex items-center gap-8">
+      <div className="hidden md:flex items-center justify-center gap-8">
         {navLinks.map(link => (
           <button
             key={link.path}
@@ -61,7 +61,7 @@ export default function PublicNav() {
       </div>
 
       {/* Right actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
         {/* Theme toggle */}
         <button
           onClick={toggle}
