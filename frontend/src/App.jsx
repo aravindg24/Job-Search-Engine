@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Header from './components/layout/Header'
 import SearchPage from './pages/SearchPage'
 import JobDetailPage from './pages/JobDetailPage'
@@ -47,6 +48,7 @@ export default function App() {
           } />
         </Routes>
         <ToastContainer toasts={toasts} />
+        <Analytics />
       </div>
     </BrowserRouter>
   )
