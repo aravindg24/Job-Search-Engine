@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../utils/supabase'
 
@@ -14,6 +14,13 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
 
+  // Redirect already-authenticated users away from /login
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate('/search', { replace: true })
+    })
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -27,7 +34,7 @@ export default function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        // AuthGuard will redirect automatically on session change
+        navigate('/search', { replace: true })
       }
     } catch (err) {
       const msg = err.message || 'Something went wrong.'
