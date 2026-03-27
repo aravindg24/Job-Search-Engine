@@ -2,7 +2,7 @@
 
 > A semantic job search engine and command center. Upload your resume once, describe what you want in plain English, and get AI-ranked matches with explanations, gap analysis, tailored pitches, and application tracking.
 
-**Live:** [direct-jobs.vercel.app](https://job-search-engine-eta.vercel.app/) &nbsp;·&nbsp; **Backend:** Render &nbsp;·&nbsp; **Auth:** Supabase
+**Live:** [https://job-search-engine-eta.vercel.app/](https://job-search-engine-eta.vercel.app/) &nbsp;·&nbsp; **Backend:** Render &nbsp;·&nbsp; **Auth:** Supabase
 
 ---
 
