@@ -38,7 +38,6 @@ from database import (
     save_watch_preferences, get_watch_preferences, update_watch_last_checked,
     save_search, send_invite,
 )
-from indexer import main as run_indexer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -68,16 +67,15 @@ def get_current_user(authorization: str = Header(None)) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Lightweight startup — only verify Qdrant connection and collection.
+    # The indexer is intentionally NOT run here to stay within Render's 512 MB
+    # memory limit. Run `python indexer.py` locally or in CI to populate jobs.
     try:
         create_collection()
         n = count()
-        if n == 0:
-            logger.info("No jobs indexed yet. Running indexer...")
-            run_indexer()
-        else:
-            logger.info(f"Qdrant has {n} jobs indexed.")
+        logger.info(f"Qdrant ready — {n} jobs indexed.")
     except Exception as e:
-        logger.error(f"Startup error (non-fatal): {e} — server will still start.")
+        logger.error(f"Startup warning (non-fatal): {e} — server will still start.")
     yield
 
 
@@ -173,15 +171,31 @@ async def upload_resume(file: UploadFile = File(...), user_id: str = Depends(get
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
+    if not raw_text or len(raw_text.strip()) < 50:
+        raise HTTPException(status_code=422, detail="Could not extract text from PDF. Make sure it is not a scanned image.")
+
     parsed = parse_profile(raw_text)
+
+    # Check if replacing an existing profile (re-upload) or creating a new one
+    existing = get_resume_profile(user_id)
+    is_reupload = existing is not None
 
     try:
         row = save_resume_profile(raw_text, parsed, user_id)
     except Exception as e:
         logger.error(f"Failed to save resume to Supabase: {e}")
-        raise HTTPException(status_code=500, detail="Failed to save resume profile.")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save resume. Please ensure RLS is disabled on resume_profiles in Supabase."
+        )
 
-    return {"message": "Resume uploaded and parsed successfully.", "profile": parsed, "id": row.get("id")}
+    action = "updated" if is_reupload else "uploaded"
+    return {
+        "message": f"Resume {action} successfully.",
+        "profile": parsed,
+        "id": row.get("id"),
+        "is_reupload": is_reupload,
+    }
 
 
 @app.get("/api/resume/profile")
@@ -390,12 +404,15 @@ async def get_digest(user_id: str = Depends(get_current_user)):
 
 @app.post("/api/digest/refresh")
 async def refresh_digest(user_id: str = Depends(get_current_user)):
+    # Full re-indexing is too memory-intensive to run inside the API server on
+    # Render's free tier (512 MB). The job index is refreshed by running
+    # `python indexer.py` separately (locally or via GitHub Actions CI).
     try:
-        run_indexer(include_scraped=True)
-        return {"message": "Job index refreshed successfully.", "jobs_indexed": count()}
+        n = count()
+        return {"message": "Job index is up to date.", "jobs_indexed": n}
     except Exception as e:
-        logger.error(f"Refresh failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Refresh failed: {e}")
+        logger.error(f"Count failed: {e}")
+        raise HTTPException(status_code=500, detail="Could not reach job index.")
 
 
 # ── Invite ──────────────────────────────────────────────────────────────────────

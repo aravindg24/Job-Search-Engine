@@ -3,7 +3,11 @@ Indexer: scrape all sources → deduplicate → embed → upsert to Qdrant → c
 
 Run locally:   python indexer.py
 Run in CI:     python indexer.py  (same command, cloud Qdrant via env vars)
+
+NOTE: Do NOT import and call main() from the API server — it is too memory-intensive
+for Render's 512 MB free tier. Run this script separately or via GitHub Actions.
 """
+import gc
 import json
 import sys
 import hashlib
@@ -141,22 +145,39 @@ def load_scraped_jobs() -> list[dict]:
     return scraped
 
 
-def index_jobs(jobs: list[dict]) -> None:
+def index_jobs(jobs: list[dict], chunk_size: int = 50) -> None:
+    """
+    Embed and upsert jobs in chunks to stay within 512 MB RAM on Render free tier.
+    Each chunk embeds at most `chunk_size` job texts before freeing memory.
+    """
     if not jobs:
         logger.warning("No jobs to index.")
         return
 
-    logger.info(f"Generating embeddings for {len(jobs)} jobs...")
-    texts = [build_text(j) for j in jobs]
-    vectors = embed_batch(texts)
+    total = len(jobs)
+    indexed = 0
+    logger.info(f"Indexing {total} jobs in chunks of {chunk_size}...")
 
-    points = [
-        {"id": job["id"], "vector": vector, "payload": job}
-        for job, vector in zip(jobs, vectors)
-    ]
+    for start in range(0, total, chunk_size):
+        chunk = jobs[start : start + chunk_size]
 
-    upsert_batch(points)
-    logger.info(f"Indexed {len(points)} jobs. Collection now has {count()} points.")
+        texts = [build_text(j) for j in chunk]
+        vectors = embed_batch(texts)
+
+        points = [
+            {"id": job["id"], "vector": vec, "payload": job}
+            for job, vec in zip(chunk, vectors)
+        ]
+
+        upsert_batch(points)
+        indexed += len(chunk)
+        logger.info(f"  chunk {start // chunk_size + 1}: {indexed}/{total} jobs upserted")
+
+        # Explicitly free the large arrays before the next chunk
+        del texts, vectors, points
+        gc.collect()
+
+    logger.info(f"Indexing complete — collection now has {count()} points.")
 
 
 def main(include_scraped: bool = True):
