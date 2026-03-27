@@ -68,20 +68,30 @@ def get_current_user(authorization: str = Header(None)) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_collection()
-    if count() == 0:
-        logger.info("No jobs indexed yet. Running indexer...")
-        run_indexer()
-    else:
-        logger.info(f"Qdrant has {count()} jobs indexed.")
+    try:
+        create_collection()
+        n = count()
+        if n == 0:
+            logger.info("No jobs indexed yet. Running indexer...")
+            run_indexer()
+        else:
+            logger.info(f"Qdrant has {n} jobs indexed.")
+    except Exception as e:
+        logger.error(f"Startup error (non-fatal): {e} — server will still start.")
     yield
 
 
 app = FastAPI(title="Direct API", version="3.0.0", lifespan=lifespan)
 
+_cors_origins = list({
+    o.strip().rstrip("/")
+    for o in settings.cors_origins.split(",")
+    if o.strip()
+} | {"http://localhost:5173", "https://job-search-engine-eta.vercel.app"})
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip().rstrip("/") for o in settings.cors_origins.split(",")],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
