@@ -9,13 +9,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 _client: Optional[Client] = None
+_admin_client: Optional[Client] = None
 
 
 def get_db() -> Client:
+    """Return a DB client. Uses service_role key (bypasses RLS) if available, else anon key."""
     global _client
     if _client is None:
-        _client = create_client(settings.supabase_url, settings.supabase_key)
+        key = settings.supabase_service_key or settings.supabase_key
+        _client = create_client(settings.supabase_url, key)
     return _client
+
+
+def get_admin_db() -> Client:
+    """Admin client using service_role key — required for invite_user_by_email."""
+    global _admin_client
+    if _admin_client is None:
+        if not settings.supabase_service_key:
+            raise RuntimeError("SUPABASE_SERVICE_KEY is not set — cannot send invites.")
+        _admin_client = create_client(settings.supabase_url, settings.supabase_service_key)
+    return _admin_client
+
+
+def send_invite(email: str) -> None:
+    """Invite a user by email via Supabase admin API."""
+    get_admin_db().auth.admin.invite_user_by_email(email)
 
 
 # ── Resume Profile ─────────────────────────────────────────────────────────────

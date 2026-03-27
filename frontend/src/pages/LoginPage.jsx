@@ -12,8 +12,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirmed, setConfirmed] = useState(false)   // signup success screen
+  const [magicSent, setMagicSent] = useState(false)   // magic link sent screen
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
+  const [useMagicLink, setUseMagicLink] = useState(false)
 
   // Redirect already-authenticated users away from /login
   useEffect(() => {
@@ -31,11 +33,20 @@ export default function LoginPage() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setConfirmed(true)   // show confirmation screen
+        setConfirmed(true)
+      } else if (useMagicLink) {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+        if (error) throw error
+        setMagicSent(true)
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        // Check if the user already has a resume profile
         let hasProfile = false
         try {
           await getResumeProfile()
@@ -51,7 +62,6 @@ export default function LoginPage() {
       }
     } catch (err) {
       const msg = err.message || 'Something went wrong.'
-      // Make "Email not confirmed" error actionable
       if (msg.toLowerCase().includes('email not confirmed')) {
         setError('email_not_confirmed')
       } else {
@@ -69,10 +79,55 @@ export default function LoginPage() {
       await supabase.auth.resend({ type: 'signup', email })
       setResent(true)
     } catch {
-      // fail silently — email rate limits are common on free tier
+      // fail silently
     } finally {
       setResending(false)
     }
+  }
+
+  const switchMode = (m) => {
+    setMode(m)
+    setError('')
+    setUseMagicLink(false)
+  }
+
+  // ── Magic link sent screen ───────────────────────────────
+  if (magicSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4"
+        style={{ backgroundColor: 'var(--bg)' }}>
+        <div className="w-full max-w-sm text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
+            style={{ backgroundColor: 'rgba(232,255,71,0.1)', color: 'var(--accent)' }}>
+            <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+            Check your email
+          </h2>
+          <p className="text-sm leading-relaxed mb-2" style={{ color: 'var(--text-3)' }}>
+            We sent a magic sign-in link to
+          </p>
+          <p className="text-sm font-semibold mb-6" style={{ color: 'var(--text)' }}>{email}</p>
+          <p className="text-xs mb-8" style={{ color: 'var(--text-4)' }}>
+            Click the link in the email to sign in instantly — no password needed.
+            The link expires in 1 hour and can only be used once.
+          </p>
+          <button
+            onClick={() => { setMagicSent(false); setUseMagicLink(false) }}
+            className="text-sm px-6 py-2.5 rounded-xl font-semibold transition-all duration-150"
+            style={{ backgroundColor: 'var(--accent)', color: '#000' }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    )
   }
 
   // ── Signup success screen ────────────────────────────────
@@ -157,7 +212,7 @@ export default function LoginPage() {
             {['signin', 'signup'].map(m => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError('') }}
+                onClick={() => switchMode(m)}
                 className="flex-1 text-sm py-1.5 rounded-md transition-all duration-150 font-medium"
                 style={mode === m
                   ? { backgroundColor: 'var(--surface)', color: 'var(--text)', boxShadow: '0 1px 3px var(--shadow)' }
@@ -185,23 +240,26 @@ export default function LoginPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-3)' }}>
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                minLength={6}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
-                style={{ backgroundColor: 'var(--bg-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
-              />
-            </div>
+            {/* Password field — hidden in magic link mode */}
+            {!useMagicLink && (
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-3)' }}>
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required={!useMagicLink}
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--bg-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+              </div>
+            )}
 
-            {/* Email not confirmed — special case */}
+            {/* Email not confirmed error */}
             {error === 'email_not_confirmed' && (
               <div className="px-3 py-3 rounded-lg text-xs space-y-2"
                 style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
@@ -234,15 +292,38 @@ export default function LoginPage() {
               className="w-full py-2 rounded-lg text-sm font-semibold transition-all duration-150 disabled:opacity-50"
               style={{ backgroundColor: 'var(--accent)', color: '#000' }}
             >
-              {loading ? 'Please wait…' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+              {loading
+                ? 'Please wait…'
+                : useMagicLink
+                  ? 'Send magic link'
+                  : mode === 'signin' ? 'Sign In' : 'Create Account'
+              }
             </button>
           </form>
+
+          {/* Magic link toggle — only on sign in tab */}
+          {mode === 'signin' && (
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+              <button
+                onClick={() => { setUseMagicLink(v => !v); setError('') }}
+                className="w-full text-sm py-2 rounded-lg transition-all duration-150 font-medium"
+                style={useMagicLink
+                  ? { backgroundColor: 'rgba(232,255,71,0.08)', color: 'var(--accent)', border: '1px solid rgba(232,255,71,0.2)' }
+                  : { color: 'var(--text-3)', backgroundColor: 'transparent', border: '1px solid var(--border)' }
+                }
+                onMouseEnter={e => { if (!useMagicLink) e.currentTarget.style.color = 'var(--text)' }}
+                onMouseLeave={e => { if (!useMagicLink) e.currentTarget.style.color = 'var(--text-3)' }}
+              >
+                {useMagicLink ? '✦ Magic link enabled — enter email above' : 'Sign in with magic link'}
+              </button>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-xs mt-4" style={{ color: 'var(--text-4)' }}>
           {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
           <button
-            onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError('') }}
+            onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
             className="underline transition-colors"
             style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}

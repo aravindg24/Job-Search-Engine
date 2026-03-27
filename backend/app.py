@@ -22,6 +22,7 @@ from models import (
     GapAnalysisResponse,
     TrackRequest, TrackerResponse, TrackerStats, TrackedJob,
     WatchRequest, DigestResponse, DigestJob,
+    InviteRequest,
 )
 from search.vector_store import create_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
@@ -35,7 +36,7 @@ from database import (
     save_resume_profile, get_resume_profile,
     upsert_tracked_job, get_tracked_jobs, delete_tracked_job,
     save_watch_preferences, get_watch_preferences, update_watch_last_checked,
-    save_search,
+    save_search, send_invite,
 )
 from indexer import main as run_indexer
 
@@ -80,7 +81,7 @@ app = FastAPI(title="Direct API", version="3.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins.split(","),
+    allow_origins=[o.strip().rstrip("/") for o in settings.cors_origins.split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -385,3 +386,17 @@ async def refresh_digest(user_id: str = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Refresh failed: {e}")
         raise HTTPException(status_code=500, detail=f"Refresh failed: {e}")
+
+
+# ── Invite ──────────────────────────────────────────────────────────────────────
+
+@app.post("/api/invite")
+async def invite_user(req: InviteRequest, user_id: str = Depends(get_current_user)):
+    try:
+        send_invite(req.email)
+        return {"message": f"Invitation sent to {req.email}."}
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.error(f"Invite failed for {req.email}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send invitation.")

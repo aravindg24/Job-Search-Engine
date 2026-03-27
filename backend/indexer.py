@@ -111,6 +111,33 @@ def load_scraped_jobs() -> list[dict]:
     except Exception as e:
         logger.warning(f"HackerNews scraper failed: {e}")
 
+    # 5. Greenhouse company boards (company_boards.json registry)
+    try:
+        from scraper.greenhouse import scrape as scrape_greenhouse
+        jobs = scrape_greenhouse()
+        logger.info(f"Greenhouse: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"Greenhouse scraper failed: {e}")
+
+    # 6. Ashby company boards (company_boards.json registry)
+    try:
+        from scraper.ashby import scrape as scrape_ashby
+        jobs = scrape_ashby()
+        logger.info(f"Ashby: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"Ashby scraper failed: {e}")
+
+    # 7. Lever company boards (company_boards.json registry)
+    try:
+        from scraper.lever import scrape as scrape_lever
+        jobs = scrape_lever()
+        logger.info(f"Lever: {len(jobs)} jobs")
+        scraped.extend(jobs)
+    except Exception as e:
+        logger.warning(f"Lever scraper failed: {e}")
+
     return scraped
 
 

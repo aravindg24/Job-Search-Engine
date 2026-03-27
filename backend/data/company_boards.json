@@ -1,0 +1,61 @@
+{
+  "_comment": "Company job board registry. To add a company: find their job board URL and add {company, slug} to the right platform list. The slug is the last path segment of their job board URL. All slugs have been verified to return live job data.",
+  "_examples": {
+    "greenhouse": "https://job-boards.greenhouse.io/{slug}  ->  API: https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
+    "ashby":      "https://jobs.ashbyhq.com/{slug}          ->  API: https://api.ashbyhq.com/posting-api/job-board/{slug}",
+    "lever":      "https://jobs.lever.co/{slug}             ->  API: https://api.lever.co/v0/postings/{slug}?mode=json"
+  },
+  "greenhouse": [
+    { "company": "Anthropic",        "slug": "anthropic" },
+    { "company": "Stripe",           "slug": "stripe" },
+    { "company": "Vercel",           "slug": "vercel" },
+    { "company": "Databricks",       "slug": "databricks" },
+    { "company": "Figma",            "slug": "figma" },
+    { "company": "Brex",             "slug": "brex" },
+    { "company": "Cloudflare",       "slug": "cloudflare" },
+    { "company": "Pinterest",        "slug": "pinterest" },
+    { "company": "Twilio",           "slug": "twilio" },
+    { "company": "Elastic",          "slug": "elastic" },
+    { "company": "Airbnb",           "slug": "airbnb" },
+    { "company": "DoorDash USA",     "slug": "doordashusa" },
+    { "company": "Twitch",           "slug": "twitch" },
+    { "company": "Cognitiv",         "slug": "cognitiv" },
+    { "company": "Airtable",         "slug": "airtable" },
+    { "company": "Asana",            "slug": "asana" },
+    { "company": "Scale AI",         "slug": "scaleai" }
+  ],
+  "ashby": [
+    { "company": "OpenAI",           "slug": "openai" },
+    { "company": "Cohere",           "slug": "cohere" },
+    { "company": "Perplexity AI",    "slug": "perplexity" },
+    { "company": "Ramp",             "slug": "ramp" },
+    { "company": "Linear",           "slug": "linear" },
+    { "company": "Notion",           "slug": "notion" },
+    { "company": "Plaid",            "slug": "plaid" },
+    { "company": "Supabase",         "slug": "supabase" },
+    { "company": "Airbyte",          "slug": "airbyte" },
+    { "company": "Confluent",        "slug": "confluent" },
+    { "company": "Modal",            "slug": "modal" },
+    { "company": "Anyscale",         "slug": "anyscale" },
+    { "company": "Harvey",           "slug": "harvey" },
+    { "company": "Cursor",           "slug": "cursor" },
+    { "company": "Replit",           "slug": "replit" },
+    { "company": "Dust",             "slug": "dust" },
+    { "company": "Weaviate",         "slug": "weaviate" },
+    { "company": "LangChain",        "slug": "langchain" },
+    { "company": "Wispr Flow",       "slug": "wispr-flow" },
+    { "company": "Jerry.ai",         "slug": "Jerry.ai" },
+    { "company": "Juicebox",         "slug": "juicebox" },
+    { "company": "Vanta",            "slug": "vanta" },
+    { "company": "Mercury",          "slug": "mercury" },
+    { "company": "Baseten",          "slug": "baseten" },
+    { "company": "Deepgram",         "slug": "deepgram" },
+    { "company": "Pika",             "slug": "pika" },
+    { "company": "Nabla",            "slug": "nabla" },
+    { "company": "Retool",           "slug": "retool" },
+    { "company": "Snyk",             "slug": "snyk" }
+  ],
+  "lever": [
+    { "company": "Anyscale",         "slug": "anyscale" }
+  ]
+}

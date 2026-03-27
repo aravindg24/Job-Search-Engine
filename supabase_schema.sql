@@ -1,8 +1,9 @@
 -- Run this in your Supabase SQL editor (https://supabase.com/dashboard/project/_/sql)
--- Creates all tables needed for RoleGPT
+-- Creates all tables needed for Direct
 
 CREATE TABLE IF NOT EXISTS resume_profiles (
     id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     raw_text TEXT NOT NULL,
     parsed_profile JSONB NOT NULL,
     uploaded_at TIMESTAMPTZ DEFAULT NOW()
@@ -11,6 +12,7 @@ CREATE TABLE IF NOT EXISTS resume_profiles (
 CREATE TABLE IF NOT EXISTS tracked_jobs (
     id SERIAL PRIMARY KEY,
     job_id TEXT NOT NULL UNIQUE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     job_title TEXT,
     company TEXT,
     match_score REAL,
@@ -37,6 +39,7 @@ CREATE TRIGGER tracked_jobs_updated_at
 
 CREATE TABLE IF NOT EXISTS watch_preferences (
     id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     min_match_score REAL DEFAULT 70,
     keywords JSONB DEFAULT '[]',
     locations JSONB DEFAULT '[]',
@@ -47,8 +50,15 @@ CREATE TABLE IF NOT EXISTS watch_preferences (
 
 CREATE TABLE IF NOT EXISTS search_history (
     id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     query TEXT NOT NULL,
     results_count INTEGER,
     top_match_score REAL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migration: add user_id to existing tables if already created without it
+ALTER TABLE resume_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE tracked_jobs ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE watch_preferences ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE search_history ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;

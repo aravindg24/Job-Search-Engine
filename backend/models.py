@@ -188,3 +188,9 @@ class DigestResponse(BaseModel):
     since: Optional[str]
     new_matches: int
     jobs: List[DigestJob]
+
+
+# ── Invite ──────────────────────────────────────────────────────────────────────
+
+class InviteRequest(BaseModel):
+    email: str

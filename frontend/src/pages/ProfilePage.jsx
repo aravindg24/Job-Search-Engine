@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useResume } from '../hooks/useResume'
 import ResumeUpload from '../components/profile/ResumeUpload'
 import ParsedProfile from '../components/profile/ParsedProfile'
 import WatchSettings from '../components/profile/WatchSettings'
 import { toast } from '../components/shared/Toast'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { inviteUser } from '../utils/api'
 
 function Section({ title, action, children }) {
   return (
@@ -30,6 +32,29 @@ export default function ProfilePage() {
   const location = useLocation()
   const navigate = useNavigate()
   const isOnboarding = location.state?.onboarding === true
+
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [inviteSent, setInviteSent] = useState(false)
+  const [inviteError, setInviteError] = useState('')
+
+  const handleInvite = async (e) => {
+    e.preventDefault()
+    setInviteLoading(true)
+    setInviteError('')
+    setInviteSent(false)
+    try {
+      await inviteUser(inviteEmail)
+      setInviteSent(true)
+      setInviteEmail('')
+      toast(`Invite sent to ${inviteEmail}`)
+    } catch (err) {
+      const msg = err?.response?.data?.detail || 'Failed to send invite.'
+      setInviteError(msg)
+    } finally {
+      setInviteLoading(false)
+    }
+  }
 
   const handleUpload = async (file) => {
     try {
@@ -106,6 +131,45 @@ export default function ProfilePage() {
       {/* Watch preferences */}
       <Section title="Watch Preferences">
         <WatchSettings />
+      </Section>
+
+      {/* Invite */}
+      <Section title="Invite Someone">
+        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>
+          Know someone who's job searching? Send them an invite to Direct.
+        </p>
+        <form onSubmit={handleInvite} className="flex gap-2">
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={e => { setInviteEmail(e.target.value); setInviteSent(false); setInviteError('') }}
+            required
+            placeholder="their@email.com"
+            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none transition-colors"
+            style={{ backgroundColor: 'var(--bg-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+          />
+          <button
+            type="submit"
+            disabled={inviteLoading}
+            className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 disabled:opacity-50 whitespace-nowrap"
+            style={{ backgroundColor: 'var(--accent)', color: '#000' }}
+          >
+            {inviteLoading ? 'Sending…' : 'Send Invite'}
+          </button>
+        </form>
+
+        {inviteSent && (
+          <p className="text-xs mt-3 px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)' }}>
+            Invite sent — they'll receive an email with a link to join.
+          </p>
+        )}
+        {inviteError && (
+          <p className="text-xs mt-3 px-3 py-2 rounded-lg"
+            style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+            {inviteError}
+          </p>
+        )}
       </Section>
     </div>
   )

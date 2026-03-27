@@ -73,6 +73,11 @@ export const getDigest = () =>
 export const refreshDigest = () =>
   api.post('/digest/refresh').then(r => r.data)
 
+// ── Invite ─────────────────────────────────────────────────────────────────────
+
+export const inviteUser = (email) =>
+  api.post('/invite', { email }).then(r => r.data)
+
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 export const healthCheck = () =>

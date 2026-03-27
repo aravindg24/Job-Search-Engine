@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Supabase
     supabase_url: str = ""
     supabase_key: str = ""
+    supabase_service_key: str = ""   # service_role key — required for admin invite
 
     class Config:
         env_file = str(_ENV_FILE)

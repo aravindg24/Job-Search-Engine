@@ -11,6 +11,7 @@ import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import AuthGuard from './components/shared/AuthGuard'
 import { useToast, ToastContainer } from './components/shared/Toast'
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Protected */}
           <Route path="/*" element={
