@@ -27,7 +27,7 @@ from models import (
 from search.vector_store import create_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
 from search.gaps import analyze_gaps
-from search.embedder import embed
+from search.embedder import embed, warmup as warmup_embedder
 from search.reranker import rerank
 from resume.parser import extract_text
 from resume.profiler import parse_profile, build_search_context
@@ -67,15 +67,25 @@ def get_current_user(authorization: str = Header(None)) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Lightweight startup — only verify Qdrant connection and collection.
-    # The indexer is intentionally NOT run here to stay within Render's 512 MB
-    # memory limit. Run `python indexer.py` locally or in CI to populate jobs.
+    # Step 1: Pre-load the embedding model BEFORE accepting any requests.
+    # Without this, the first concurrent burst (dashboard fires gaps + digest +
+    # search simultaneously) triggers multiple parallel model loads on a cold
+    # server, each consuming ~130 MB, which pushes past Render's 512 MB limit.
+    # Loading it once here keeps peak RAM flat for all subsequent requests.
+    try:
+        logger.info("Pre-loading embedding model...")
+        warmup_embedder()
+        logger.info("Embedding model ready.")
+    except Exception as e:
+        logger.error(f"Model warmup failed (non-fatal): {e}")
+
+    # Step 2: Verify Qdrant Cloud connection and collection.
     try:
         create_collection()
         n = count()
         logger.info(f"Qdrant ready — {n} jobs indexed.")
     except Exception as e:
-        logger.error(f"Startup warning (non-fatal): {e} — server will still start.")
+        logger.error(f"Qdrant startup warning (non-fatal): {e} — server will still start.")
     yield
 
 
