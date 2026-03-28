@@ -2,6 +2,7 @@
 Direct FastAPI backend — multi-user with Supabase Auth.
 Run: uvicorn app:app --reload
 """
+import gc
 import logging
 import sys
 from pathlib import Path
@@ -142,12 +143,16 @@ async def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     except Exception as e:
         logger.warning(f"Could not save search history: {e}")
 
-    return SearchResponse(
+    response = SearchResponse(
         results=results,
         total=len(results),
         query=req.query,
         search_id=search_record.get("id") if search_record else None,
     )
+    # Free the large results list (job payloads + vectors) before returning.
+    del results
+    gc.collect()
+    return response
 
 
 # ── Explain ────────────────────────────────────────────────────────────────────
@@ -256,7 +261,9 @@ async def gaps(search_id: int = Query(None), user_id: str = Depends(get_current_
 
     query_text = build_search_context(resume_profile) if resume_profile else "software engineer developer"
     query_vec = embed(query_text)
-    raw_results = vector_search(query_vec, top_k=15)
+    # top_k capped at 8 (was 15) — keeps job payload memory low when this
+    # endpoint runs concurrently with search and digest on the dashboard.
+    raw_results = vector_search(query_vec, top_k=8)
     result = analyze_gaps(raw_results, resume_profile)
     return GapAnalysisResponse(**result)
 
@@ -375,11 +382,18 @@ async def get_digest(user_id: str = Depends(get_current_user)):
         query_text = " ".join(keywords) if keywords else "software engineer"
 
     query_vec = embed(query_text)
-    raw_results = vector_search(query_vec, top_k=20)
-    reranked = rerank(query_text, raw_results, resume_profile=resume_profile)
+    # top_k capped at 10 (was 20). Digest skips LLM reranking — it runs
+    # concurrently with search and gaps on every dashboard load, so the
+    # cheaper vector-score ranking keeps memory flat on Render's 512 MB tier.
+    raw_results = vector_search(query_vec, top_k=10)
 
+    # Use vector similarity scores directly (skip rerank to avoid concurrent
+    # LLM + PyTorch memory pressure with the search endpoint).
     digest_jobs = []
-    for item in reranked:
+    for item in raw_results:
+        item["match_score"] = round(item.get("score", 0) * 100)
+        item["match_reason"] = "Strong semantic match based on your profile."
+    for item in raw_results:
         score = item.get("match_score", 0) or 0
         if score < min_score:
             continue
