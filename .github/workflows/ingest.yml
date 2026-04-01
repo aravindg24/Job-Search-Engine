@@ -27,13 +27,13 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
 
-      # The BGE-small model is ~130 MB. Caching it avoids a 60-90s download
-      # on every hourly run. The key is static because model weights never change.
-      - name: Cache HuggingFace model weights
+      # fastembed downloads the ONNX model (~33 MB, vs 130 MB for PyTorch).
+      # Static key — model weights never change between runs.
+      - name: Cache fastembed model weights
         uses: actions/cache@v4
         with:
-          path: ~/.cache/huggingface
-          key: hf-bge-small-en-v1.5-v1
+          path: ~/.cache/fastembed
+          key: fastembed-bge-small-en-v1.5-v1
 
       - name: Install Python dependencies
         run: |
