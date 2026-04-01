@@ -7,6 +7,7 @@ export default function LoginPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [mode, setMode] = useState(location.state?.mode || 'signin')
+  const emailConfirmed = location.state?.emailConfirmed || false
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,7 +32,13 @@ export default function LoginPage() {
 
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({ email, password })
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
         if (error) throw error
         setConfirmed(true)
       } else if (useMagicLink) {
@@ -207,6 +214,14 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+          {/* Email confirmed banner */}
+          {emailConfirmed && (
+            <div className="mb-4 px-3 py-3 rounded-lg text-xs"
+              style={{ backgroundColor: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e' }}>
+              ✓ Email confirmed! You can now sign in.
+            </div>
+          )}
+
           {/* Tab toggle */}
           <div className="flex rounded-lg p-1 mb-5" style={{ backgroundColor: 'var(--bg-2)' }}>
             {['signin', 'signup'].map(m => (

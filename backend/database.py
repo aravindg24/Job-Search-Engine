@@ -76,8 +76,14 @@ def upsert_tracked_job(
     applied_date: Optional[str] = None,
 ) -> Dict[str, Any]:
     db = get_db()
+    # Strip user_id prefix if the frontend sends back the compound DB key.
+    # When updating status the frontend passes job.job_id which already contains
+    # the "{user_id}_" prefix — without this check we'd create a duplicate entry
+    # with a double-prefixed key instead of updating the existing row.
+    prefix = f"{user_id}_"
+    raw_id = job_id[len(prefix):] if job_id.startswith(prefix) else job_id
     data: Dict[str, Any] = {
-        "job_id": f"{user_id}_{job_id}",   # unique per user
+        "job_id": f"{user_id}_{raw_id}",   # unique per user
         "job_title": job_title,
         "company": company,
         "match_score": match_score,
@@ -106,10 +112,12 @@ def get_tracked_jobs(user_id: str) -> List[Dict[str, Any]]:
 
 def delete_tracked_job(job_id: str, user_id: str) -> bool:
     db = get_db()
+    prefix = f"{user_id}_"
+    raw_id = job_id[len(prefix):] if job_id.startswith(prefix) else job_id
     result = (
         db.table("tracked_jobs")
         .delete()
-        .eq("job_id", f"{user_id}_{job_id}")
+        .eq("job_id", f"{user_id}_{raw_id}")
         .eq("user_id", user_id)
         .execute()
     )

@@ -7,10 +7,15 @@ export default function AuthCallbackPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Supabase automatically exchanges the token from the URL hash.
-    // Wait for the session to be ready, then route accordingly.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'EMAIL_CONFIRMED' || event === 'SIGNED_UP') {
+        // Email confirmed — redirect to login with success banner
+        navigate('/login', { replace: true, state: { emailConfirmed: true } })
+        return
+      }
+
       if (event === 'SIGNED_IN' && session) {
+        // Magic link sign-in — route based on profile
         let hasProfile = false
         try {
           await getResumeProfile()
@@ -18,11 +23,14 @@ export default function AuthCallbackPage() {
         } catch {
           hasProfile = false
         }
-        navigate(hasProfile ? '/search' : '/profile', { replace: true, state: { onboarding: !hasProfile } })
+        navigate(hasProfile ? '/search' : '/profile', {
+          replace: true,
+          state: { onboarding: !hasProfile },
+        })
       }
     })
 
-    // Also check immediately in case the session is already set
+    // Check immediately for already-active session (magic link token exchange)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         let hasProfile = false
@@ -32,7 +40,10 @@ export default function AuthCallbackPage() {
         } catch {
           hasProfile = false
         }
-        navigate(hasProfile ? '/search' : '/profile', { replace: true, state: { onboarding: !hasProfile } })
+        navigate(hasProfile ? '/search' : '/profile', {
+          replace: true,
+          state: { onboarding: !hasProfile },
+        })
       }
     })
 
@@ -42,7 +53,7 @@ export default function AuthCallbackPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4"
       style={{ backgroundColor: 'var(--bg)' }}>
-      <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+      <div className="w-6 h-6 rounded-full border-2 animate-spin"
         style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
       <p className="text-sm" style={{ color: 'var(--text-3)' }}>Signing you in…</p>
     </div>
