@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuth } from '../../hooks/useAuth'
+import { clearSession } from '../../hooks/useSearch'
 
 export default function Header() {
   const { dark, toggle } = useTheme()
@@ -47,9 +48,16 @@ export default function Header() {
 
       {/* Nav */}
       <nav className="flex items-center gap-7">
-        <NavLink to="/" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
+        {/* Home clears the last search so /search opens fresh */}
+        <button
+          onClick={() => { clearSession(); navigate('/search') }}
+          className="text-sm transition-colors duration-150"
+          style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+        >
           Home
-        </NavLink>
+        </button>
         <NavLink to="/search" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
           Search
         </NavLink>

@@ -1,40 +1,53 @@
 import { useState, useCallback } from 'react'
 import { searchJobs } from '../utils/api'
 
-const STORAGE_KEY = 'direct_last_search'
+const SESSION_KEY = 'direct_last_search'   // sessionStorage — survives back-nav, clears on tab close
+const RECENT_KEY  = 'direct_recent_queries' // localStorage   — persists across sessions
 
-function loadSaved() {
+const MAX_RECENT = 5
+
+// ── sessionStorage helpers (last search result, for back-nav restore) ─────────
+
+function loadSession() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
 }
 
-function saveTosession(query, results) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ query, results }))
-  } catch {
-    // quota exceeded or private mode — fail silently
-  }
+function saveSession(query, results) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ query, results })) } catch { /* ignore */ }
 }
 
-function clearSession() {
-  try { sessionStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
+export function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY) } catch { /* ignore */ }
 }
+
+// ── localStorage helpers (recent query list) ──────────────────────────────────
+
+function loadRecent() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') } catch { return [] }
+}
+
+function pushRecent(query) {
+  const prev    = loadRecent()
+  const deduped = prev.filter(q => q.toLowerCase() !== query.toLowerCase())
+  const updated = [query, ...deduped].slice(0, MAX_RECENT)
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(updated)) } catch { /* ignore */ }
+  return updated
+}
+
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useSearch() {
-  // Restore last search from sessionStorage so navigating to a job detail
-  // page and pressing "← Back to results" shows the previous results.
-  const saved = loadSaved()
+  const saved = loadSession()
 
-  const [results, setResults]       = useState(saved?.results || [])
-  const [loading, setLoading]       = useState(false)
-  const [error, setError]           = useState(null)
-  const [query, setQuery]           = useState(saved?.query || '')
-  const [hasSearched, setHasSearched] = useState(!!saved)
+  const [results,    setResults]    = useState(saved?.results || [])
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState(null)
+  const [query,      setQuery]      = useState(saved?.query  || '')
+  const [hasSearched,setHasSearched]= useState(!!saved)
+  const [recentQueries, setRecentQueries] = useState(() => loadRecent())
 
   const search = useCallback(async (queryText, options = {}) => {
     if (!queryText.trim()) return
@@ -45,9 +58,10 @@ export function useSearch() {
 
     try {
       const data = await searchJobs({ query: queryText, top_k: 10, ...options })
-      const hits = data.results || []
+      const hits  = data.results || []
       setResults(hits)
-      saveTosession(queryText, hits)
+      saveSession(queryText, hits)
+      setRecentQueries(pushRecent(queryText))
     } catch (err) {
       setError(err.response?.data?.detail || 'Search failed. Make sure the backend is running.')
       setResults([])
@@ -64,5 +78,5 @@ export function useSearch() {
     clearSession()
   }, [])
 
-  return { results, loading, error, query, hasSearched, search, reset }
+  return { results, loading, error, query, hasSearched, recentQueries, search, reset }
 }
