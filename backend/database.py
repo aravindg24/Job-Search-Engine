@@ -174,3 +174,28 @@ def save_search(query: str, results_count: int, top_match_score: Optional[float]
         "user_id": user_id,
     }).execute()
     return result.data[0] if result.data else {}
+
+
+def get_search_history(user_id: str, limit: int = 5) -> List[str]:
+    """
+    Return the last `limit` unique queries for the user, newest first.
+    Fetches more rows than needed then deduplicates in Python because
+    PostgREST does not support DISTINCT ON via the query builder.
+    """
+    db = get_db()
+    result = (
+        db.table("search_history")
+        .select("query, searched_at")
+        .eq("user_id", user_id)
+        .order("searched_at", desc=True)
+        .limit(limit * 10)   # fetch extra to ensure we get `limit` unique ones
+        .execute()
+    )
+    seen: list[str] = []
+    for row in result.data or []:
+        q = row.get("query", "").strip()
+        if q and q.lower() not in [s.lower() for s in seen]:
+            seen.append(q)
+        if len(seen) >= limit:
+            break
+    return seen

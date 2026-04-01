@@ -78,6 +78,11 @@ export const refreshDigest = () =>
 export const inviteUser = (email) =>
   api.post('/invite', { email }).then(r => r.data)
 
+// ── Search History ─────────────────────────────────────────────────────────────
+
+export const getSearchHistory = () =>
+  api.get('/search/history').then(r => r.data)
+
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 export const healthCheck = () =>

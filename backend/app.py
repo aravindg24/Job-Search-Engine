@@ -37,7 +37,7 @@ from database import (
     save_resume_profile, get_resume_profile,
     upsert_tracked_job, get_tracked_jobs, delete_tracked_job,
     save_watch_preferences, get_watch_preferences, update_watch_last_checked,
-    save_search, send_invite,
+    save_search, get_search_history, send_invite,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -153,6 +153,19 @@ async def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     del results
     gc.collect()
     return response
+
+
+# ── Search History ─────────────────────────────────────────────────────────────
+
+@app.get("/api/search/history")
+async def search_history(user_id: str = Depends(get_current_user)):
+    """Return the last 5 unique search queries for the user."""
+    try:
+        queries = get_search_history(user_id, limit=5)
+        return {"queries": queries}
+    except Exception as e:
+        logger.warning(f"Could not fetch search history: {e}")
+        return {"queries": []}
 
 
 # ── Explain ────────────────────────────────────────────────────────────────────
