@@ -14,12 +14,15 @@ function Section({ title, children, action }) {
       style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h2
-          className="text-xs font-mono uppercase tracking-widest"
-          style={{ color: 'var(--text-4)' }}
-        >
-          {title}
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <span
+            className="w-1 h-4 rounded-full shrink-0"
+            style={{ backgroundColor: 'var(--accent)' }}
+          />
+          <h2 className="text-sm font-bold" style={{ color: 'var(--text)' }}>
+            {title}
+          </h2>
+        </div>
         {action}
       </div>
       {children}

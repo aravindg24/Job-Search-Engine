@@ -3,15 +3,16 @@ import { generatePitch } from '../../utils/api'
 import { toast } from '../shared/Toast'
 
 const TYPES = [
-  { id: 'cover_letter_hook', label: 'Cover Letter Hook' },
-  { id: 'cold_email', label: 'Cold Email' },
-  { id: 'why_interested', label: 'Why Interested?' },
+  { id: 'cover_letter_hook', label: 'Cover Letter Hook', action: 'Generate Cover Letter Hook' },
+  { id: 'cold_email',        label: 'Cold Email',        action: 'Write Cold Email'           },
+  { id: 'why_interested',    label: 'Why Interested?',   action: 'Write Why Interested'       },
 ]
 
 export default function PitchGenerator({ jobId }) {
   const [type, setType] = useState('cover_letter_hook')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const activeType = TYPES.find(t => t.id === type)
 
   const generate = async () => {
     setLoading(true)
@@ -53,9 +54,9 @@ export default function PitchGenerator({ jobId }) {
       <button
         onClick={generate}
         disabled={loading}
-        className="w-full bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 rounded-lg py-2.5 text-sm font-medium transition-all disabled:opacity-50 mb-4"
+        className="w-full bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 rounded-lg py-2.5 text-sm font-semibold transition-all disabled:opacity-50 mb-4"
       >
-        {loading ? 'Generating…' : 'Generate Pitch'}
+        {loading ? 'Generating…' : activeType?.action}
       </button>
 
       {result && (
@@ -76,7 +77,10 @@ export default function PitchGenerator({ jobId }) {
           {/* Key mappings */}
           {result.key_mappings?.length > 0 && (
             <div>
-              <p className="text-xs text-secondary uppercase tracking-wider mb-2">Why this works</p>
+              <div className="flex items-center gap-2 mb-2">
+              <span className="w-1 h-3.5 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
+              <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>Why this works</p>
+            </div>
               <div className="space-y-2">
                 {result.key_mappings.map((m, i) => (
                   <div key={i} className="flex gap-2 text-sm">
