@@ -46,7 +46,7 @@ export default function JobDetailPage() {
       <div className="max-w-2xl mx-auto px-6 py-16 text-center">
         <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Job not found in session.</p>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/search')}
           className="text-sm transition-colors duration-150"
           style={{ color: 'var(--accent)' }}
         >
@@ -76,11 +76,12 @@ export default function JobDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-10 animate-fade-in">
+    <div className="max-w-6xl mx-auto px-6 py-8 animate-fade-in">
+
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="text-sm mb-7 flex items-center gap-1 transition-colors duration-150"
+        className="text-sm mb-6 flex items-center gap-1.5 transition-colors duration-150"
         style={{ color: 'var(--text-3)' }}
         onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
         onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
@@ -88,17 +89,20 @@ export default function JobDetailPage() {
         ← Back to results
       </button>
 
-      {/* Header */}
-      <div className="mb-7">
+      {/* ── Job header ── */}
+      <div
+        className="rounded-2xl p-6 mb-6"
+        style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+      >
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="flex-1 min-w-0">
             <h1
-              className="text-2xl leading-snug font-semibold"
+              className="text-2xl leading-snug font-semibold mb-1"
               style={{ color: 'var(--text)', fontFamily: '"Instrument Serif", Georgia, serif' }}
             >
               {job.title}
             </h1>
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5">
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
               <span className="text-base font-medium" style={{ color: 'var(--text-2)' }}>
                 {job.company}
               </span>
@@ -108,90 +112,98 @@ export default function JobDetailPage() {
               {job.remote && (
                 <span
                   className="text-xs px-1.5 py-0.5 rounded font-medium"
-                  style={{
-                    backgroundColor: 'rgba(252,170,45,0.12)',
-                    color: 'var(--accent)',
-                    border: '1px solid rgba(252,170,45,0.20)',
-                  }}
+                  style={{ backgroundColor: 'rgba(232,255,71,0.12)', color: 'var(--accent)', border: '1px solid rgba(232,255,71,0.2)' }}
                 >
                   Remote
                 </span>
               )}
             </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs" style={{ color: 'var(--text-4)' }}>
+              {job.salary_range && <span>{job.salary_range}</span>}
+              {job.company_stage && <span>{job.company_stage}</span>}
+              {job.posted_date && <span>Posted {formatDate(job.posted_date)}</span>}
+              {job.source && <span className="capitalize">{job.source}</span>}
+            </div>
           </div>
           <MatchBadge score={job.match_score} size="lg" />
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs" style={{ color: 'var(--text-4)' }}>
-          {job.salary_range && <span>{job.salary_range}</span>}
-          {job.company_stage && <span>{job.company_stage}</span>}
-          {job.posted_date && <span>Posted {formatDate(job.posted_date)}</span>}
-          {job.source && <span className="capitalize">{job.source}</span>}
+
+        {/* Action buttons in header */}
+        <div className="flex flex-wrap gap-2 mt-5 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+          {job.source_url && (
+            <a
+              href={job.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150 inline-flex items-center gap-1.5"
+              style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              Apply ↗
+            </a>
+          )}
+          <TrackButton
+            onClick={() => handleTrack('saved')}
+            disabled={saving || status === 'saved'}
+            active={status === 'saved'}
+            activeStyle={{ color: '#16a34a', borderColor: 'rgba(34,197,94,0.25)', backgroundColor: 'rgba(34,197,94,0.06)' }}
+          >
+            {status === 'saved' ? '✓ Saved' : 'Save to Tracker'}
+          </TrackButton>
+          <TrackButton
+            onClick={() => handleTrack('applied')}
+            disabled={saving || status === 'applied'}
+            active={status === 'applied'}
+            activeStyle={{ color: '#2563eb', borderColor: 'rgba(37,99,235,0.25)', backgroundColor: 'rgba(37,99,235,0.06)' }}
+          >
+            {status === 'applied' ? '✓ Applied' : 'Mark as Applied'}
+          </TrackButton>
         </div>
       </div>
 
-      {/* Match breakdown */}
-      <Section title="Match Analysis">
-        <MatchBreakdown job={job} query={query} />
-      </Section>
+      {/* ── 2-column body ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-      {/* Pitch generator */}
-      <Section title="Generate Pitch">
-        <PitchGenerator jobId={job.id} />
-      </Section>
+        {/* Left col — analysis + description */}
+        <div className="lg:col-span-3">
+          <Section title="Match Analysis">
+            <MatchBreakdown job={job} query={query} />
+          </Section>
 
-      {/* Job description */}
-      <Section
-        title="Full Job Description"
-        action={
-          <button
-            onClick={() => setShowDesc(!showDesc)}
-            className="text-xs transition-colors duration-150"
-            style={{ color: 'var(--text-4)' }}
+          <Section
+            title="Full Job Description"
+            action={
+              <button
+                onClick={() => setShowDesc(!showDesc)}
+                className="text-xs transition-colors duration-150"
+                style={{ color: 'var(--text-4)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+              >
+                {showDesc ? 'Collapse ▲' : 'Expand ▼'}
+              </button>
+            }
           >
-            {showDesc ? 'Collapse ▲' : 'Expand ▼'}
-          </button>
-        }
-      >
-        {showDesc ? (
-          <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-3)' }}>
-            {job.description}
-          </p>
-        ) : (
-          <p className="text-sm" style={{ color: 'var(--text-4)' }}>Click Expand to read the full description.</p>
-        )}
-      </Section>
+            {showDesc ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-3)' }}>
+                {job.description}
+              </p>
+            ) : (
+              <p className="text-sm" style={{ color: 'var(--text-4)' }}>
+                Click <span style={{ color: 'var(--text-3)' }}>Expand</span> to read the full description.
+              </p>
+            )}
+          </Section>
+        </div>
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-3 mt-6">
-        {job.source_url && (
-          <a
-            href={job.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150"
-            style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e8940a'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
-          >
-            Apply ↗
-          </a>
-        )}
-        <TrackButton
-          onClick={() => handleTrack('saved')}
-          disabled={saving || status === 'saved'}
-          active={status === 'saved'}
-          activeStyle={{ color: '#16a34a', borderColor: 'rgba(34,197,94,0.25)', backgroundColor: 'rgba(34,197,94,0.06)' }}
-        >
-          {status === 'saved' ? '✓ Saved' : 'Save to Tracker'}
-        </TrackButton>
-        <TrackButton
-          onClick={() => handleTrack('applied')}
-          disabled={saving || status === 'applied'}
-          active={status === 'applied'}
-          activeStyle={{ color: '#2563eb', borderColor: 'rgba(37,99,235,0.25)', backgroundColor: 'rgba(37,99,235,0.06)' }}
-        >
-          {status === 'applied' ? '✓ Applied' : 'Mark as Applied'}
-        </TrackButton>
+        {/* Right col — pitch generator */}
+        <div className="lg:col-span-2">
+          <Section title="Generate Pitch">
+            <PitchGenerator jobId={job.id} />
+          </Section>
+        </div>
+
       </div>
     </div>
   )

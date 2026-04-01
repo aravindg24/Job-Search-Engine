@@ -8,6 +8,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [mode, setMode] = useState(location.state?.mode || 'signin')
   const emailConfirmed = location.state?.emailConfirmed || false
+  const timedOut       = location.state?.timedOut       || false
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -214,6 +215,14 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+          {/* Session timed out banner */}
+          {timedOut && (
+            <div className="mb-4 px-3 py-3 rounded-lg text-xs"
+              style={{ backgroundColor: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#f59e0b' }}>
+              ⏱ You were signed out after 10 minutes of inactivity.
+            </div>
+          )}
+
           {/* Email confirmed banner */}
           {emailConfirmed && (
             <div className="mb-4 px-3 py-3 rounded-lg text-xs"

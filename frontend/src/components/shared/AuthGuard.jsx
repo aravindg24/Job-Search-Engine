@@ -1,5 +1,11 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useInactivityLogout } from '../../hooks/useInactivityLogout'
+
+function InactivityWatcher() {
+  useInactivityLogout()
+  return null
+}
 
 export default function AuthGuard({ children }) {
   const { session, loading } = useAuth()
@@ -15,5 +21,10 @@ export default function AuthGuard({ children }) {
 
   if (!session) return <Navigate to="/login" replace />
 
-  return children
+  return (
+    <>
+      <InactivityWatcher />
+      {children}
+    </>
+  )
 }
