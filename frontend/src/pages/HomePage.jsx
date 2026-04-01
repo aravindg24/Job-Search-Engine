@@ -12,8 +12,8 @@ export default function HomePage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: 'var(--bg)' }}
+      className="flex flex-col items-center justify-center px-6"
+      style={{ backgroundColor: 'var(--bg)', minHeight: 'calc(100vh - 57px)' }}
     >
       <div className="w-full max-w-2xl">
         {/* Hero */}
