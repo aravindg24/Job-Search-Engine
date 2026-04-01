@@ -47,6 +47,9 @@ export default function Header() {
 
       {/* Nav */}
       <nav className="flex items-center gap-7">
+        <NavLink to="/" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
+          Home
+        </NavLink>
         <NavLink to="/search" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
           Search
         </NavLink>

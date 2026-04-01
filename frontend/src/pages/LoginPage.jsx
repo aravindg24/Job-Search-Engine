@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../utils/supabase'
 import { getResumeProfile } from '../utils/api'
 
@@ -201,13 +201,36 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4"
       style={{ backgroundColor: 'var(--bg)' }}>
       <div className="w-full max-w-sm">
-        {/* Logo */}
+
+        {/* Back to home */}
+        <div className="mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm transition-colors duration-150"
+            style={{ color: 'var(--text-4)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+          >
+            ← Back to home
+          </Link>
+        </div>
+
+        {/* Logo — clicking goes home */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg font-bold text-sm mb-3"
-            style={{ backgroundColor: 'var(--accent)', color: '#000' }}>
-            D
-          </div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Direct</h1>
+          <Link to="/" className="inline-flex flex-col items-center gap-1 group">
+            <div
+              className="inline-flex items-center justify-center w-10 h-10 rounded-lg font-bold text-sm transition-opacity duration-150"
+              style={{ backgroundColor: 'var(--accent)', color: '#000' }}
+            >
+              D
+            </div>
+            <h1
+              className="text-xl font-semibold transition-colors duration-150"
+              style={{ color: 'var(--text)' }}
+            >
+              Direct
+            </h1>
+          </Link>
           <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
             {mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
           </p>

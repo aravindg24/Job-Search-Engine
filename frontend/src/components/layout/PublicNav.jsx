@@ -7,6 +7,7 @@ export default function PublicNav() {
   const { dark, toggle } = useTheme()
 
   const navLinks = [
+    { label: 'Home', path: '/' },
     { label: 'Features', path: '/features' },
     { label: 'How it works', path: '/how-it-works' },
   ]
