@@ -31,7 +31,7 @@ export default function Header() {
       }}
     >
       {/* Logo */}
-      <NavLink to="/search" className="flex items-center gap-2.5 group">
+      <NavLink to="/home" className="flex items-center gap-2.5 group">
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-serif font-bold"
           style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
@@ -50,7 +50,7 @@ export default function Header() {
       <nav className="flex items-center gap-7">
         {/* Home clears the last search so /search opens fresh */}
         <button
-          onClick={() => { clearSession(); navigate('/search') }}
+          onClick={() => { clearSession(); navigate('/home') }}
           className="text-sm transition-colors duration-150"
           style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}

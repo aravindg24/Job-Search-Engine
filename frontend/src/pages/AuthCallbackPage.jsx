@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
         } catch {
           hasProfile = false
         }
-        navigate(hasProfile ? '/search' : '/profile', {
+        navigate(hasProfile ? '/home' : '/profile', {
           replace: true,
           state: { onboarding: !hasProfile },
         })
@@ -40,7 +40,7 @@ export default function AuthCallbackPage() {
         } catch {
           hasProfile = false
         }
-        navigate(hasProfile ? '/search' : '/profile', {
+        navigate(hasProfile ? '/home' : '/profile', {
           replace: true,
           state: { onboarding: !hasProfile },
         })

@@ -6,6 +6,7 @@ import Header from './components/layout/Header'
 import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
 import HowItWorksPage from './pages/HowItWorksPage'
+import HomePage from './pages/HomePage'
 import SearchPage from './pages/SearchPage'
 import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
@@ -47,6 +48,7 @@ export default function App() {
               <Header />
               <main className="flex-1">
                 <Routes>
+                  <Route path="/home" element={<HomePage />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/job/:id" element={<JobDetailPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
