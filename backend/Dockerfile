@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download bge-small-en-v1.5 at build time — baked into image,
+# Pre-download bge-small-en-v1.5 ONNX model at build time — baked into image,
 # zero cold-start download on every new Render instance.
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-en-v1.5')"
+RUN python -c "from fastembed import TextEmbedding; list(TextEmbedding('BAAI/bge-small-en-v1.5').embed(['warmup']))"
 
 # Copy application code
 COPY . .
