@@ -61,7 +61,7 @@ def run_search(
     return results
 
 
-def run_explain(query: str, job_id: str) -> Optional[Dict[str, Any]]:
+def run_explain(query: str, job_id: str, resume_profile: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     """Get detailed match explanation for a specific job."""
     from search.vector_store import get_client, _to_uuid
     from config import settings
@@ -77,4 +77,4 @@ def run_explain(query: str, job_id: str) -> Optional[Dict[str, Any]]:
         return None
 
     job = results[0].payload
-    return reranker_explain(query, job)
+    return reranker_explain(query, job, resume_profile=resume_profile)

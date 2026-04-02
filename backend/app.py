@@ -172,7 +172,9 @@ async def search_history(user_id: str = Depends(get_current_user)):
 
 @app.post("/api/explain", response_model=ExplainResponse)
 async def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
-    result = run_explain(query=req.query, job_id=req.job_id)
+    profile_row = get_resume_profile(user_id)
+    resume_profile = profile_row.get("parsed_profile") if profile_row else None
+    result = run_explain(query=req.query, job_id=req.job_id, resume_profile=resume_profile)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Job {req.job_id} not found.")
     return ExplainResponse(

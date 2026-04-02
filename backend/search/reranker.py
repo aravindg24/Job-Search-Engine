@@ -39,10 +39,10 @@ Return ONLY a valid JSON array with NO markdown or code blocks, structured exact
 
 Include ALL {count} jobs in your response. match_score should be 0-100."""
 
-EXPLAIN_PROMPT = """You are an expert job matching assistant analyzing fit between a candidate and a specific job.
+EXPLAIN_PROMPT = """You are an expert technical recruiter evaluating a candidate's fit for a specific job.
 
-Candidate description:
-{query}
+Candidate profile:
+{candidate_context}
 
 Job details:
 Title: {title}
@@ -50,12 +50,17 @@ Company: {company}
 Description: {description}
 Requirements: {requirements}
 
-Provide a detailed match analysis. Return ONLY valid JSON with NO markdown or code blocks:
+Analyze fit by comparing the candidate's actual skills, experience, and projects against what this role requires.
+- Strengths must reference specific skills or experiences the candidate actually has that match the role.
+- Gaps must reference specific requirements the role asks for that are missing or thin in the candidate's profile.
+- Do not invent skills the candidate doesn't have, and do not echo back job description language as strengths.
+
+Return ONLY valid JSON with NO markdown or code blocks:
 {{
   "match_score": <number 0-100>,
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "gaps": ["<gap 1>", "<gap 2>"],
-  "suggestion": "<one actionable sentence on how to position themselves>"
+  "strengths": ["<specific matching skill or experience>", "<another concrete match>", "<third match if applicable>"],
+  "gaps": ["<missing or thin requirement>", "<second gap if applicable>"],
+  "suggestion": "<one actionable sentence on how to position themselves for this specific role>"
 }}"""
 
 
@@ -128,7 +133,7 @@ def rerank(query: str, candidates: List[Dict[str, Any]], resume_profile: Dict[st
         return candidates
 
 
-def explain(query: str, job: Dict[str, Any]) -> Dict[str, Any]:
+def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = None) -> Dict[str, Any]:
     """Get detailed match explanation for a single job."""
     client = _get_client()
 
@@ -142,11 +147,41 @@ def explain(query: str, job: Dict[str, Any]) -> Dict[str, Any]:
     if not client:
         return fallback
 
+    if resume_profile:
+        skills = resume_profile.get("skills", {})
+        all_skills = (
+            skills.get("languages", []) +
+            skills.get("frameworks", []) +
+            skills.get("ml_ai", []) +
+            skills.get("cloud", []) +
+            skills.get("databases", []) +
+            skills.get("other", [])
+        )
+        work = "; ".join(
+            f"{w.get('role')} at {w.get('company')} ({w.get('duration')})"
+            for w in resume_profile.get("work_history", [])[:3]
+        )
+        projects = "; ".join(
+            f"{p.get('name')} ({', '.join(p.get('tech', [])[:4])}): {p.get('description', '')}"
+            for p in resume_profile.get("projects", [])[:3]
+        )
+        candidate_context = (
+            f"Name: {resume_profile.get('name', 'Candidate')}\n"
+            f"Summary: {resume_profile.get('summary', '')}\n"
+            f"Skills: {', '.join(all_skills)}\n"
+            f"Experience: {resume_profile.get('experience_years', '?')} years\n"
+            f"Work history: {work or 'N/A'}\n"
+            f"Projects: {projects or 'N/A'}\n"
+            f"Education: {'; '.join(f\"{e.get('degree')} in {e.get('field')} from {e.get('school')}\" for e in resume_profile.get('education', [])[:2]) or 'N/A'}"
+        )
+    else:
+        candidate_context = f"Search intent: {query}"
+
     prompt = EXPLAIN_PROMPT.format(
-        query=query,
+        candidate_context=candidate_context,
         title=job.get("title", ""),
         company=job.get("company", ""),
-        description=job.get("description", "")[:500],
+        description=job.get("description", "")[:600],
         requirements=", ".join(job.get("requirements", []))
     )
 

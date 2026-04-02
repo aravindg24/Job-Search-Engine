@@ -22,7 +22,7 @@ export default function LoginPage() {
   // Redirect already-authenticated users away from /login
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/search', { replace: true })
+      if (session) navigate('/home', { replace: true })
     })
   }, [])
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
           hasProfile = false
         }
         if (hasProfile) {
-          navigate('/search', { replace: true })
+          navigate('/home', { replace: true })
         } else {
           navigate('/profile', { replace: true, state: { onboarding: true } })
         }
