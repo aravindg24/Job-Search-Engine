@@ -165,6 +165,11 @@ def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = No
             f"{p.get('name')} ({', '.join(p.get('tech', [])[:4])}): {p.get('description', '')}"
             for p in resume_profile.get("projects", [])[:3]
         )
+        edu_parts = [
+            "{} in {} from {}".format(e.get("degree", ""), e.get("field", ""), e.get("school", ""))
+            for e in resume_profile.get("education", [])[:2]
+        ]
+        education = "; ".join(edu_parts) or "N/A"
         candidate_context = (
             f"Name: {resume_profile.get('name', 'Candidate')}\n"
             f"Summary: {resume_profile.get('summary', '')}\n"
@@ -172,7 +177,7 @@ def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = No
             f"Experience: {resume_profile.get('experience_years', '?')} years\n"
             f"Work history: {work or 'N/A'}\n"
             f"Projects: {projects or 'N/A'}\n"
-            f"Education: {'; '.join(f\"{e.get('degree')} in {e.get('field')} from {e.get('school')}\" for e in resume_profile.get('education', [])[:2]) or 'N/A'}"
+            f"Education: {education}"
         )
     else:
         candidate_context = f"Search intent: {query}"
