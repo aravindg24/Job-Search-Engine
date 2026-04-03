@@ -1,5 +1,6 @@
 """
-Indexer: scrape all sources → deduplicate → embed → upsert to Qdrant → cleanup old jobs.
+Indexer: scrape all sources → deduplicate → embed → upsert to Qdrant.
+Drops and recreates the collection on every run so only live jobs are indexed.
 
 Run locally:   python indexer.py
 Run in CI:     python indexer.py  (same command, cloud Qdrant via env vars)
@@ -9,7 +10,6 @@ for Render's 512 MB free tier. Run this script separately or via GitHub Actions.
 """
 import gc
 import json
-import os
 import sys
 import hashlib
 import logging
@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, str(Path(__file__).parent))
 
 from search.embedder import embed_batch
-from search.vector_store import create_collection, upsert_batch, count, delete_old_jobs
+from search.vector_store import create_collection, upsert_batch, count
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -197,13 +197,6 @@ def main(include_scraped: bool = True):
 
     # Index to Qdrant in memory-safe chunks
     index_jobs(all_jobs)
-
-    # Delete jobs older than JOB_RETENTION_DAYS (default 2 days / 48 hours).
-    # The GitHub Action sets JOB_RETENTION_DAYS=2 so Qdrant only holds fresh data.
-    # Increase to a larger number locally if you want longer history.
-    retention_days = int(os.environ.get("JOB_RETENTION_DAYS", "2"))
-    logger.info(f"Cleaning up jobs older than {retention_days} day(s)...")
-    delete_old_jobs(days=retention_days)
 
     logger.info("Indexing complete!")
 
