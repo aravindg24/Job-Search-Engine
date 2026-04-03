@@ -61,7 +61,7 @@ export default function ProfilePage() {
       await upload(file)
       toast('Resume parsed successfully')
       if (isOnboarding) {
-        navigate('/search', { replace: true })
+        navigate('/home', { replace: true })
       }
     } catch {
       toast(error || 'Upload failed', 'error')
