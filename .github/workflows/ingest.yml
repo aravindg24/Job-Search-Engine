@@ -68,7 +68,7 @@ jobs:
           EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          JOB_RETENTION_DAYS: '2'
+          JOB_RETENTION_DAYS: '7'
         run: |
           cd backend
           python indexer.py
