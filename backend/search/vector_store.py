@@ -97,6 +97,8 @@ def search(
         conditions = []
         if filters.get("remote") is not None:
             conditions.append(FieldCondition(key="remote", match=MatchValue(value=filters["remote"])))
+        if filters.get("stream"):
+            conditions.append(FieldCondition(key="stream", match=MatchValue(value=filters["stream"])))
         if conditions:
             qdrant_filter = Filter(must=conditions)
 

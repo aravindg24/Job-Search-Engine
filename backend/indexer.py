@@ -65,6 +65,49 @@ def stamp_indexed_at(jobs: list[dict]) -> list[dict]:
     return jobs
 
 
+_STREAM_KEYWORDS: dict[str, list[str]] = {
+    "engineering": [
+        "software engineer", "software developer", "backend", "frontend", "full stack",
+        "fullstack", "full-stack", "site reliability", "sre", "devops", "platform engineer",
+        "infrastructure engineer", "mobile engineer", "ios engineer", "android engineer",
+        "security engineer", "embedded engineer", "firmware engineer", "qa engineer",
+        "sdet", "test engineer", "ml engineer", "machine learning engineer",
+        "ai engineer", "robotics engineer", "systems engineer", "network engineer",
+        "cloud engineer", "solutions engineer", "staff engineer", "principal engineer",
+    ],
+    "data": [
+        "data scientist", "data analyst", "data engineer", "analytics engineer",
+        "business intelligence", "bi developer", "bi engineer", "quantitative analyst",
+        "statistician", "research scientist", "machine learning researcher", "ai researcher",
+        "business analyst", "data science", "data analytics", "applied scientist",
+    ],
+    "product": [
+        "product manager", "product designer", "ux designer", "ui designer",
+        "user researcher", "ux researcher", "brand designer", "visual designer",
+        "product marketing", "design lead", "head of design", "director of product",
+        "vp of product", "growth pm", "technical pm", "associate pm", " apm",
+        "program manager", "product lead",
+    ],
+}
+
+
+def classify_stream(title: str) -> str:
+    """Classify a job title into: engineering | data | product | other."""
+    t = title.lower()
+    for stream, keywords in _STREAM_KEYWORDS.items():
+        if any(kw in t for kw in keywords):
+            return stream
+    return "other"
+
+
+def tag_streams(jobs: list[dict]) -> list[dict]:
+    """Stamp each job with a stream field if it doesn't already have one."""
+    for job in jobs:
+        if not job.get("stream"):
+            job["stream"] = classify_stream(job.get("title", ""))
+    return jobs
+
+
 def load_seed_jobs() -> list[dict]:
     path = DATA_DIR / "seed_jobs.json"
     if not path.exists():
@@ -191,9 +234,10 @@ def main(include_scraped: bool = True):
         scraped = load_scraped_jobs()
         all_jobs.extend(scraped)
 
-    # Deduplicate and stamp timestamps
+    # Deduplicate, stamp timestamps, and classify streams
     all_jobs = dedup(all_jobs)
     all_jobs = stamp_indexed_at(all_jobs)
+    all_jobs = tag_streams(all_jobs)
 
     # Index to Qdrant in memory-safe chunks
     index_jobs(all_jobs)

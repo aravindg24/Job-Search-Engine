@@ -14,14 +14,27 @@ function ClockIcon() {
   )
 }
 
+const STREAMS = [
+  { id: null,          label: 'All' },
+  { id: 'engineering', label: 'Engineering' },
+  { id: 'data',        label: 'Data' },
+  { id: 'product',     label: 'Product' },
+]
+
 export default function SearchPage() {
   const { results, loading, error, query, hasSearched, recentQueries, search, reset } = useSearch()
   const { profile } = useResume()
   const [pitchJob, setPitchJob] = useState(null)
   const [inputValue, setInputValue] = useState('')
+  const [activeStream, setActiveStream] = useState(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const didAutoSearch = useRef(false)
+
+  const searchWithStream = (q, stream) => {
+    const opts = stream ? { filters: { stream } } : {}
+    search(q, opts)
+  }
 
   // Auto-search when navigated here with ?q= param (from HomePage)
   useEffect(() => {
@@ -29,7 +42,7 @@ export default function SearchPage() {
     if (q && !didAutoSearch.current) {
       didAutoSearch.current = true
       setInputValue(q)
-      search(q)
+      searchWithStream(q, activeStream)
     }
   }, [searchParams, search])
 
@@ -41,12 +54,17 @@ export default function SearchPage() {
   const handleSubmit = (e) => {
     e?.preventDefault()
     if (!inputValue.trim() || loading) return
-    search(inputValue.trim())
+    searchWithStream(inputValue.trim(), activeStream)
+  }
+
+  const handleStreamChange = (stream) => {
+    setActiveStream(stream)
+    if (query) searchWithStream(query, stream)
   }
 
   const handleRecent = (q) => {
     setInputValue(q)
-    search(q)
+    searchWithStream(q, activeStream)
   }
 
   const handleReset = () => {
@@ -142,6 +160,32 @@ export default function SearchPage() {
               Search
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* ── Stream tabs ── */}
+      <div className="px-6 pt-3 pb-1" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="max-w-3xl mx-auto flex items-center gap-1">
+          {STREAMS.map(s => (
+            <button
+              key={s.id ?? 'all'}
+              onClick={() => handleStreamChange(s.id)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150"
+              style={
+                activeStream === s.id
+                  ? { backgroundColor: 'var(--accent)', color: 'var(--bg)' }
+                  : { color: 'var(--text-3)', backgroundColor: 'transparent' }
+              }
+              onMouseEnter={e => {
+                if (activeStream !== s.id) e.currentTarget.style.backgroundColor = 'var(--surface)'
+              }}
+              onMouseLeave={e => {
+                if (activeStream !== s.id) e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
 

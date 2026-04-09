@@ -21,25 +21,28 @@ def _get_client():
     return _client
 
 
-RERANK_PROMPT = """You are an expert job matching assistant. Given a candidate's self-description and a list of job postings, re-rank the jobs by how well they match the candidate.
+RERANK_PROMPT = """You are an expert job matching assistant. Given a candidate's profile and a list of job postings, re-rank the jobs by how well they match the candidate.
 
-Candidate description:
+Candidate profile:
 {query}
 
 Jobs to rank:
 {jobs_list}
 
 Instructions:
-- Analyze how well each job matches the candidate's skills, experience, location preferences, and interests
-- Consider both explicit matches (mentioned skills) and implicit matches (related experience)
-- Return a re-ranked list with match scores and explanations
+- The candidate's profile may indicate a stream (engineering, data, product, or other). Prioritize roles in that stream.
+- For engineering candidates: weight technical skills, languages, frameworks, system design experience.
+- For data candidates: weight SQL, Python, analytics tools, ML experience, domain knowledge.
+- For product candidates: weight domain expertise, methodologies (roadmapping, user research, A/B testing), and cross-functional leadership.
+- Consider both explicit matches (mentioned skills/tools) and implicit matches (related experience and domain).
+- Return a re-ranked list with match scores and brief reasons.
 
 Return ONLY a valid JSON array with NO markdown or code blocks, structured exactly like this:
-[{{"job_id": "job-001", "rank": 1, "match_score": 92, "reason": "Strong React + Python fit with AI focus matching their interests"}}]
+[{{"job_id": "job-001", "rank": 1, "match_score": 92, "reason": "Strong React + Python fit with AI focus matching their background"}}]
 
 Include ALL {count} jobs in your response. match_score should be 0-100."""
 
-EXPLAIN_PROMPT = """You are an expert technical recruiter evaluating a candidate's fit for a specific job.
+EXPLAIN_PROMPT = """You are an expert recruiter evaluating a candidate's fit for a specific role.
 
 Candidate profile:
 {candidate_context}
@@ -50,9 +53,10 @@ Company: {company}
 Description: {description}
 Requirements: {requirements}
 
-Analyze fit by comparing the candidate's actual skills, experience, and projects against what this role requires.
-- Strengths must reference specific skills or experiences the candidate actually has that match the role.
-- Gaps must reference specific requirements the role asks for that are missing or thin in the candidate's profile.
+Analyze fit by comparing the candidate's actual background against what this role requires.
+- Tailor your evaluation to the role type: technical depth for engineering roles, analytical and tooling skills for data roles, domain expertise and methodology for product/design roles.
+- Strengths must reference specific skills, experiences, or tools the candidate actually has that match the role.
+- Gaps must reference specific requirements the role asks for that are absent or thin in the candidate's profile.
 - Do not invent skills the candidate doesn't have, and do not echo back job description language as strengths.
 
 Return ONLY valid JSON with NO markdown or code blocks:
@@ -149,14 +153,10 @@ def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = No
 
     if resume_profile:
         skills = resume_profile.get("skills", {})
-        all_skills = (
-            skills.get("languages", []) +
-            skills.get("frameworks", []) +
-            skills.get("ml_ai", []) +
-            skills.get("cloud", []) +
-            skills.get("databases", []) +
-            skills.get("other", [])
-        )
+        all_skills = []
+        for v in skills.values():
+            if isinstance(v, list):
+                all_skills.extend(v)
         work = "; ".join(
             f"{w.get('role')} at {w.get('company')} ({w.get('duration')})"
             for w in resume_profile.get("work_history", [])[:3]
@@ -170,9 +170,11 @@ def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = No
             for e in resume_profile.get("education", [])[:2]
         ]
         education = "; ".join(edu_parts) or "N/A"
+        stream = resume_profile.get("stream", "")
         candidate_context = (
             f"Name: {resume_profile.get('name', 'Candidate')}\n"
-            f"Summary: {resume_profile.get('summary', '')}\n"
+            + (f"Stream: {stream}\n" if stream else "")
+            + f"Summary: {resume_profile.get('summary', '')}\n"
             f"Skills: {', '.join(all_skills)}\n"
             f"Experience: {resume_profile.get('experience_years', '?')} years\n"
             f"Work history: {work or 'N/A'}\n"

@@ -27,6 +27,8 @@ def run_search(
         filter_dict = {}
         if filters.remote is not None:
             filter_dict["remote"] = filters.remote
+        if filters.stream:
+            filter_dict["stream"] = filters.stream
 
     candidates = search(query_vector, top_k=top_k * 2, filters=filter_dict)
 
