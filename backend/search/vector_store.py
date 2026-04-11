@@ -6,6 +6,7 @@ from qdrant_client.models import (
     Filter,
     FieldCondition,
     MatchValue,
+    PayloadSchemaType,
 )
 from config import settings
 from typing import List, Dict, Any, Optional
@@ -50,6 +51,28 @@ def create_collection() -> None:
         vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
     )
     logger.info(f"Created fresh collection: {settings.qdrant_collection}")
+
+    # Create payload indexes for filterable fields
+    _index_specs = [
+        ("company", PayloadSchemaType.KEYWORD),
+        ("location", PayloadSchemaType.KEYWORD),
+        ("remote", PayloadSchemaType.KEYWORD),
+        ("stream", PayloadSchemaType.KEYWORD),
+        ("source", PayloadSchemaType.KEYWORD),
+        ("company_stage", PayloadSchemaType.KEYWORD),
+        ("salary_min", PayloadSchemaType.FLOAT),
+        ("salary_max", PayloadSchemaType.FLOAT),
+    ]
+    for field, schema in _index_specs:
+        try:
+            client.create_payload_index(
+                collection_name=settings.qdrant_collection,
+                field_name=field,
+                field_schema=schema,
+            )
+        except Exception as e:
+            logger.warning(f"Could not create payload index for '{field}': {e}")
+    logger.info("Payload indexes created.")
 
 
 def _to_uuid(job_id: str) -> str:

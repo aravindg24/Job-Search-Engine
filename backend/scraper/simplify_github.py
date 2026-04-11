@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 logger = logging.getLogger(__name__)
 
 README_URL = "https://raw.githubusercontent.com/SimplifyJobs/New-Grad-Positions/dev/README.md"
+INTERNSHIP_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2025-Internships/dev/README.md"
 
 
 def _make_id(source_url: str) -> str:
@@ -125,6 +126,82 @@ def scrape(max_age_days: int = 7) -> list[dict]:
             })
 
     logger.info(f"SimplifyJobs: scraped {len(jobs)} jobs within {max_age_days} days")
+    return jobs
+
+
+def scrape_internships(max_age_days: int = 30) -> list[dict]:
+    """
+    Fetch and parse the SimplifyJobs Summer Internships README.
+    Uses a more generous max_age_days default since internship posts stay relevant longer.
+    """
+    logger.info("Fetching SimplifyJobs internship README from GitHub...")
+    try:
+        resp = requests.get(INTERNSHIP_URL, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        logger.warning(f"Failed to fetch SimplifyJobs internship README: {e}")
+        return []
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    tables = soup.find_all("table")
+    logger.info(f"Found {len(tables)} tables in internship README")
+
+    jobs = []
+    now = datetime.now(timezone.utc)
+
+    for table in tables:
+        for row in table.find_all("tr"):
+            cols = row.find_all("td")
+            if len(cols) < 5:
+                continue
+
+            age_text = cols[4].get_text(strip=True)
+            age_match = re.match(r"(\d+)d", age_text)
+            if not age_match:
+                continue
+            age_days = int(age_match.group(1))
+            if age_days > max_age_days:
+                continue
+
+            company_tag = cols[0].find("a")
+            company = company_tag.get_text(strip=True) if company_tag else cols[0].get_text(strip=True)
+            company = re.sub(r"[^\x00-\x7F]+", "", company).strip()
+
+            role = cols[1].get_text(strip=True)
+            role = re.sub(r"[^\x00-\x7F]+", "", role).strip()
+
+            location = _clean_location(cols[2])
+            apply_url = _extract_apply_url(cols[3])
+            if not apply_url:
+                continue
+
+            if "🔒" in cols[3].get_text() or "closed" in cols[3].get_text().lower():
+                continue
+
+            job_id = _make_id(apply_url)
+            posted_date = (now.replace(hour=0, minute=0, second=0, microsecond=0)
+                           .isoformat().split("T")[0])
+
+            jobs.append({
+                "id": job_id,
+                "title": role,
+                "company": company,
+                "location": location,
+                "remote": "remote" in location.lower(),
+                "description": f"{role} internship at {company}. Location: {location}.",
+                "requirements": [],
+                "salary_range": None,
+                "salary_min": None,
+                "salary_max": None,
+                "company_stage": None,
+                "source": "simplify_internships",
+                "source_url": apply_url,
+                "posted_date": posted_date,
+                "indexed_at": now.isoformat(),
+                "tags": ["internship", "summer-internship"],
+            })
+
+    logger.info(f"SimplifyJobs internships: scraped {len(jobs)} within {max_age_days} days")
     return jobs
 
 

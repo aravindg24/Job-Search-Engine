@@ -62,3 +62,51 @@ ALTER TABLE resume_profiles ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES aut
 ALTER TABLE tracked_jobs ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE watch_preferences ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE search_history ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- ── Persistent Jobs ────────────────────────────────────────────────────────────
+-- Stores every scraped job for historical record; soft-deleted when no longer live.
+CREATE TABLE IF NOT EXISTS jobs (
+    id UUID PRIMARY KEY,
+    title TEXT NOT NULL,
+    company TEXT,
+    location TEXT,
+    remote BOOLEAN DEFAULT false,
+    description TEXT,
+    requirements JSONB DEFAULT '[]',
+    salary_range TEXT,
+    salary_min INTEGER,
+    salary_max INTEGER,
+    company_stage TEXT,
+    stream TEXT,
+    source TEXT,
+    source_url TEXT UNIQUE,
+    posted_date DATE,
+    indexed_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT false,
+    deleted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS jobs_source_idx ON jobs(source);
+CREATE INDEX IF NOT EXISTS jobs_stream_idx ON jobs(stream);
+CREATE INDEX IF NOT EXISTS jobs_company_idx ON jobs(company);
+CREATE INDEX IF NOT EXISTS jobs_remote_idx ON jobs(remote);
+CREATE INDEX IF NOT EXISTS jobs_salary_min_idx ON jobs(salary_min);
+CREATE INDEX IF NOT EXISTS jobs_is_deleted_idx ON jobs(is_deleted);
+
+CREATE TRIGGER jobs_updated_at
+  BEFORE UPDATE ON jobs
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ── Ingest Run Metrics ─────────────────────────────────────────────────────────
+-- One row per indexer execution; tracks per-source job counts and dedup stats.
+CREATE TABLE IF NOT EXISTS ingest_runs (
+    id SERIAL PRIMARY KEY,
+    run_at TIMESTAMPTZ DEFAULT NOW(),
+    source_counts JSONB NOT NULL DEFAULT '{}',
+    total_before_dedup INTEGER,
+    total_after_dedup INTEGER,
+    total_indexed INTEGER,
+    duration_seconds REAL
+);

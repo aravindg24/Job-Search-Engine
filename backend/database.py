@@ -176,6 +176,70 @@ def save_search(query: str, results_count: int, top_match_score: Optional[float]
     return result.data[0] if result.data else {}
 
 
+# ── Ingest Run Metrics ──────────────────────────────────────────────────────────
+
+def log_ingest_run(
+    source_counts: Dict[str, Any],
+    total_before_dedup: int,
+    total_after_dedup: int,
+    total_indexed: int,
+    duration_seconds: float,
+) -> None:
+    """Write one row to ingest_runs after every indexer execution."""
+    db = get_db()
+    db.table("ingest_runs").insert({
+        "source_counts": source_counts,
+        "total_before_dedup": total_before_dedup,
+        "total_after_dedup": total_after_dedup,
+        "total_indexed": total_indexed,
+        "duration_seconds": round(duration_seconds, 2),
+    }).execute()
+
+
+# ── Persistent Jobs ─────────────────────────────────────────────────────────────
+
+def bulk_upsert_jobs(jobs: List[Dict[str, Any]], batch_size: int = 200) -> None:
+    """
+    Upsert jobs into the Supabase jobs table in batches.
+    Uses source_url as the unique conflict key so re-scraping updates rather than duplicates.
+    """
+    db = get_db()
+    rows = []
+    for job in jobs:
+        job_id = job.get("id", "")
+        # Ensure valid UUID (source_url-based UUIDs already are, but guard anyway)
+        try:
+            import uuid as _uuid
+            _uuid.UUID(job_id)
+        except (ValueError, AttributeError):
+            import uuid as _uuid
+            job_id = str(_uuid.uuid5(_uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8"), job_id))
+
+        rows.append({
+            "id": job_id,
+            "title": (job.get("title") or "")[:255],
+            "company": (job.get("company") or "")[:255],
+            "location": (job.get("location") or "")[:255],
+            "remote": bool(job.get("remote", False)),
+            "description": (job.get("description") or "")[:10000],
+            "requirements": job.get("requirements") or [],
+            "salary_range": job.get("salary_range"),
+            "salary_min": job.get("salary_min"),
+            "salary_max": job.get("salary_max"),
+            "company_stage": job.get("company_stage"),
+            "stream": job.get("stream"),
+            "source": job.get("source"),
+            "source_url": job.get("source_url") or job_id,
+            "posted_date": job.get("posted_date"),
+            "indexed_at": job.get("indexed_at"),
+            "is_deleted": False,
+        })
+
+    for i in range(0, len(rows), batch_size):
+        batch = rows[i : i + batch_size]
+        db.table("jobs").upsert(batch, on_conflict="source_url").execute()
+
+
 def get_search_history(user_id: str, limit: int = 5) -> List[str]:
     """
     Return the last `limit` unique queries for the user, newest first.

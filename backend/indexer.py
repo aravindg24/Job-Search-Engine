@@ -11,13 +11,16 @@ for Render's 512 MB free tier. Run this script separately or via GitHub Actions.
 import gc
 import json
 import sys
+import time
 import hashlib
 import logging
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Dict, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from rapidfuzz import fuzz
 from search.embedder import embed_batch
 from search.vector_store import create_collection, upsert_batch, count
 
@@ -42,7 +45,7 @@ def build_text(job: dict) -> str:
 
 def dedup(jobs: list[dict]) -> list[dict]:
     """
-    Deduplicate jobs by source_url hash.
+    Deduplicate jobs by source_url hash (Level-1).
     If source_url is missing, fall back to id.
     Last occurrence wins (scraped jobs override seed data).
     """
@@ -52,7 +55,28 @@ def dedup(jobs: list[dict]) -> list[dict]:
         key_hash = hashlib.md5(key.encode()).hexdigest()
         seen[key_hash] = job
     unique = list(seen.values())
-    logger.info(f"Dedup: {len(jobs)} → {len(unique)} unique jobs")
+    logger.info(f"L1 dedup (URL hash): {len(jobs)} → {len(unique)} unique jobs")
+    return unique
+
+
+def fuzzy_dedup(jobs: list[dict], threshold: int = 92) -> list[dict]:
+    """
+    Level-2 dedup: remove near-duplicate jobs by fuzzy title+company similarity.
+    Keeps the first occurrence when two jobs exceed the similarity threshold.
+    O(n²) — acceptable for <10 000 jobs.
+    """
+    unique: list[dict] = []
+    for job in jobs:
+        key = f"{job.get('title', '').lower()} {job.get('company', '').lower()}"
+        is_dup = False
+        for seen in unique:
+            seen_key = f"{seen.get('title', '').lower()} {seen.get('company', '').lower()}"
+            if fuzz.ratio(key, seen_key) >= threshold:
+                is_dup = True
+                break
+        if not is_dup:
+            unique.append(job)
+    logger.info(f"L2 dedup (fuzzy): {len(jobs)} → {len(unique)} unique jobs")
     return unique
 
 
@@ -108,6 +132,29 @@ def tag_streams(jobs: list[dict]) -> list[dict]:
     return jobs
 
 
+_COMPANY_STAGES: dict[str, str] = {}
+
+def _load_company_stages() -> dict[str, str]:
+    global _COMPANY_STAGES
+    if not _COMPANY_STAGES:
+        path = DATA_DIR / "company_stages.json"
+        if path.exists():
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            _COMPANY_STAGES = {k.lower(): v for k, v in data.items() if not k.startswith("_")}
+    return _COMPANY_STAGES
+
+
+def tag_company_stages(jobs: list[dict]) -> list[dict]:
+    """Fill in company_stage from the static mapping where not already set."""
+    stages = _load_company_stages()
+    for job in jobs:
+        if not job.get("company_stage"):
+            company_key = (job.get("company") or "").lower().strip()
+            job["company_stage"] = stages.get(company_key)
+    return jobs
+
+
 def load_seed_jobs() -> list[dict]:
     path = DATA_DIR / "seed_jobs.json"
     if not path.exists():
@@ -119,74 +166,50 @@ def load_seed_jobs() -> list[dict]:
     return jobs
 
 
-def load_scraped_jobs() -> list[dict]:
-    """Run all live scrapers and return combined results."""
-    scraped = []
+def load_scraped_jobs() -> Tuple[List[dict], Dict[str, int]]:
+    """Run all live scrapers and return (combined jobs, per-source counts)."""
+    scraped: list[dict] = []
+    source_counts: Dict[str, int] = {}
 
-    # 1. SimplifyJobs GitHub (new grad roles, 7-day filter)
+    scraper_registry = [
+        # (label, import_path, function_name, kwargs)
+        ("SimplifyJobs new-grad", "scraper.simplify_github", "scrape", {"max_age_days": 7}),
+        ("SimplifyJobs internships", "scraper.simplify_github", "scrape_internships", {"max_age_days": 30}),
+        ("Arbeitnow", "scraper.arbeitnow", "scrape", {}),
+        ("Remotive", "scraper.remotive", "scrape", {}),
+        ("HackerNews", "scraper.hackernews", "scrape", {}),
+        ("Jobicy", "scraper.jobicy", "scrape", {}),
+        ("RemoteOK", "scraper.remoteok", "scrape", {}),
+        ("Greenhouse", "scraper.greenhouse", "scrape", {}),
+        ("Ashby", "scraper.ashby", "scrape", {}),
+        ("Lever", "scraper.lever", "scrape", {}),
+    ]
+
+    for label, module_path, fn_name, kwargs in scraper_registry:
+        try:
+            import importlib
+            mod = importlib.import_module(module_path)
+            fn = getattr(mod, fn_name)
+            jobs = fn(**kwargs)
+            count = len(jobs)
+            source_counts[label] = count
+            logger.info(f"{label}: {count} jobs")
+            scraped.extend(jobs)
+        except Exception as e:
+            logger.warning(f"{label} scraper failed: {e}")
+            source_counts[label] = 0
+
+    return scraped, source_counts
+
+
+def persist_jobs_to_supabase(jobs: list[dict]) -> None:
+    """Batch-upsert all jobs into the Supabase jobs table (best-effort)."""
     try:
-        from scraper.simplify_github import scrape as scrape_simplify
-        jobs = scrape_simplify(max_age_days=7)
-        logger.info(f"SimplifyJobs: {len(jobs)} jobs")
-        scraped.extend(jobs)
+        from database import bulk_upsert_jobs
+        bulk_upsert_jobs(jobs)
+        logger.info(f"Persisted {len(jobs)} jobs to Supabase jobs table.")
     except Exception as e:
-        logger.warning(f"SimplifyJobs scraper failed: {e}")
-
-    # 2. Arbeitnow API (free, no auth required)
-    try:
-        from scraper.arbeitnow import scrape as scrape_arbeitnow
-        jobs = scrape_arbeitnow()
-        logger.info(f"Arbeitnow: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"Arbeitnow scraper failed: {e}")
-
-    # 3. Remotive API (free, remote jobs)
-    try:
-        from scraper.remotive import scrape as scrape_remotive
-        jobs = scrape_remotive()
-        logger.info(f"Remotive: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"Remotive scraper failed: {e}")
-
-    # 4. Hacker News "Who's Hiring"
-    try:
-        from scraper.hackernews import scrape as scrape_hn
-        jobs = scrape_hn()
-        logger.info(f"HackerNews: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"HackerNews scraper failed: {e}")
-
-    # 5. Greenhouse company boards (company_boards.json registry)
-    try:
-        from scraper.greenhouse import scrape as scrape_greenhouse
-        jobs = scrape_greenhouse()
-        logger.info(f"Greenhouse: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"Greenhouse scraper failed: {e}")
-
-    # 6. Ashby company boards (company_boards.json registry)
-    try:
-        from scraper.ashby import scrape as scrape_ashby
-        jobs = scrape_ashby()
-        logger.info(f"Ashby: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"Ashby scraper failed: {e}")
-
-    # 7. Lever company boards (company_boards.json registry)
-    try:
-        from scraper.lever import scrape as scrape_lever
-        jobs = scrape_lever()
-        logger.info(f"Lever: {len(jobs)} jobs")
-        scraped.extend(jobs)
-    except Exception as e:
-        logger.warning(f"Lever scraper failed: {e}")
-
-    return scraped
+        logger.warning(f"Supabase job persistence skipped: {e}")
 
 
 def index_jobs(jobs: list[dict], chunk_size: int = 50) -> None:
@@ -225,24 +248,55 @@ def index_jobs(jobs: list[dict], chunk_size: int = 50) -> None:
 
 
 def main(include_scraped: bool = True):
+    run_start = time.time()
     create_collection()
 
     # Load all jobs
     all_jobs = load_seed_jobs()
+    source_counts: Dict[str, int] = {"seed": len(all_jobs)}
 
     if include_scraped:
-        scraped = load_scraped_jobs()
+        scraped, scraper_counts = load_scraped_jobs()
+        source_counts.update(scraper_counts)
         all_jobs.extend(scraped)
 
-    # Deduplicate, stamp timestamps, and classify streams
+    total_before_dedup = len(all_jobs)
+
+    # Deduplicate (L1: URL hash, L2: fuzzy title+company)
     all_jobs = dedup(all_jobs)
+    all_jobs = fuzzy_dedup(all_jobs)
     all_jobs = stamp_indexed_at(all_jobs)
     all_jobs = tag_streams(all_jobs)
+    all_jobs = tag_company_stages(all_jobs)
+
+    total_after_dedup = len(all_jobs)
+
+    # Persist to Supabase for historical record
+    persist_jobs_to_supabase(all_jobs)
 
     # Index to Qdrant in memory-safe chunks
     index_jobs(all_jobs)
+    total_indexed = count()
 
-    logger.info("Indexing complete!")
+    duration_seconds = time.time() - run_start
+
+    # Log ingest run metrics to Supabase
+    try:
+        from database import log_ingest_run
+        log_ingest_run(
+            source_counts=source_counts,
+            total_before_dedup=total_before_dedup,
+            total_after_dedup=total_after_dedup,
+            total_indexed=total_indexed,
+            duration_seconds=duration_seconds,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to log ingest run metrics: {e}")
+
+    logger.info(
+        f"Indexing complete! {total_indexed} jobs indexed in {duration_seconds:.1f}s "
+        f"({total_before_dedup} raw → {total_after_dedup} after dedup)"
+    )
 
 
 if __name__ == "__main__":
