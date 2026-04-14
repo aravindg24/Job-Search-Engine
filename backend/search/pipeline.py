@@ -16,12 +16,21 @@ def run_search(
     top_k: int = 10,
     filters: Optional[SearchFilters] = None,
     resume_profile: Optional[Dict[str, Any]] = None,
+    clean_query: Optional[str] = None,
 ) -> List[JobResult]:
-    """Full search pipeline: embed → search → rerank → return."""
-    # Step 1: Embed the query (BGE query prefix applied inside embed_query)
-    query_vector = embed_query(query)
+    """Full search pipeline: embed → search → (location post-filter) → rerank → return."""
+    # Step 1: Embed the semantic role query.
+    # clean_query is the filler-stripped version (e.g. "AI engineer") — better
+    # for embedding than the full natural language sentence. Fall back to query.
+    embed_text = (clean_query or query).strip() or query
+    query_vector = embed_query(embed_text)
 
-    # Step 2: Vector search — fetch 2x for re-ranking headroom
+    # Step 2: Vector search.
+    # Fetch more candidates when a location filter is active so the post-filter
+    # below has enough to work with even if only a subset match.
+    location_filter = (filters.location or "").strip() if filters else ""
+    fetch_k = top_k * (4 if location_filter else 2)
+
     filter_dict = None
     if filters:
         filter_dict = {}
@@ -30,15 +39,28 @@ def run_search(
         if filters.stream:
             filter_dict["stream"] = filters.stream
 
-    candidates = search(query_vector, top_k=top_k * 2, filters=filter_dict)
+    candidates = search(query_vector, top_k=fetch_k, filters=filter_dict)
 
     if not candidates:
         return []
 
-    # Step 3: LLM re-rank (pass resume profile for richer scoring)
+    # Step 3: Location post-filter (case-insensitive substring match).
+    # Remote jobs are always included — they're accessible from any location.
+    if location_filter:
+        loc_lower = location_filter.lower()
+        candidates = [
+            c for c in candidates
+            if loc_lower in (c["payload"].get("location") or "").lower()
+            or c["payload"].get("remote", False)
+        ]
+
+    if not candidates:
+        return []
+
+    # Step 4: LLM re-rank (pass resume profile for richer scoring)
     reranked = rerank(query, candidates, resume_profile=resume_profile)
 
-    # Step 4: Take top_k and format
+    # Step 5: Take top_k and format
     results = []
     for item in reranked[:top_k]:
         payload = item["payload"]

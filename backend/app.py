@@ -32,6 +32,7 @@ from search.pipeline import run_search, run_explain
 from search.gaps import analyze_gaps
 from search.embedder import embed, warmup as warmup_embedder
 from search.reranker import rerank
+from search.query_parser import parse_intent
 from resume.parser import extract_text
 from resume.profiler import parse_profile, build_search_context
 from pitch.generator import generate_pitch
@@ -134,19 +135,39 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
-    enriched_query = req.query
+    # ── Parse intent from natural language query ──────────────────────────────
+    # Extracts clean role query, location, and remote preference so that
+    # "I want to see AI engineer roles in Arizona" is handled correctly:
+    # clean_query="AI engineer", location="Arizona" applied as a post-filter.
+    intent = parse_intent(req.query)
+    clean_query = intent.get("clean_query") or req.query
+
+    # Merge parsed intent into filters (explicit request filters take priority)
+    from models import SearchFilters
+    base_filters = req.filters or SearchFilters()
+    if intent.get("location") and not base_filters.location:
+        base_filters = base_filters.model_copy(update={"location": intent["location"]})
+    if intent.get("remote") is not None and base_filters.remote is None:
+        base_filters = base_filters.model_copy(update={"remote": intent["remote"]})
+    active_filters = base_filters if (base_filters.remote is not None or base_filters.stream or base_filters.location) else req.filters
+
+    logger.info(f"Search intent — clean_query='{clean_query}' location='{intent.get('location')}' remote={intent.get('remote')}")
+
+    # ── Enrich query with resume profile context ───────────────────────────────
     profile_row = get_resume_profile(user_id)
     resume_profile = None
+    enriched_query = clean_query
     if profile_row:
         resume_profile = profile_row.get("parsed_profile", {})
         context = build_search_context(resume_profile)
-        enriched_query = f"{context}\n\nLooking for: {req.query}"
+        enriched_query = f"{context}\n\nLooking for: {clean_query}"
 
     results = run_search(
         query=enriched_query,
         top_k=req.top_k,
-        filters=req.filters,
+        filters=active_filters,
         resume_profile=resume_profile,
+        clean_query=clean_query,
     )
 
     search_record = None
