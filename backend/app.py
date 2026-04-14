@@ -26,6 +26,7 @@ from models import (
     InviteRequest,
     JDExtractRequest, JDExtractResponse,
     StoryCreate, Story,
+    SaveJobRequest,
 )
 from search.vector_store import create_collection, ensure_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
@@ -41,6 +42,7 @@ from database import (
     upsert_tracked_job, get_tracked_jobs, delete_tracked_job,
     save_watch_preferences, get_watch_preferences, update_watch_last_checked,
     save_search, get_search_history, send_invite,
+    save_job, unsave_job, get_saved_jobs, is_job_saved,
     get_db,
     create_story, get_stories, delete_story,
 )
@@ -162,24 +164,29 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
         context = build_search_context(resume_profile)
         enriched_query = f"{context}\n\nLooking for: {clean_query}"
 
-    results = run_search(
+    all_results = run_search(
         query=enriched_query,
         top_k=req.top_k,
+        offset=req.offset,
         filters=active_filters,
         resume_profile=resume_profile,
         clean_query=clean_query,
     )
 
+    # Apply pagination to all results
+    total_available = len(all_results)
+    paginated_results = all_results[req.offset:req.offset + req.top_k]
+
     search_record = None
     try:
-        top_score = results[0].match_score if results else None
-        search_record = save_search(req.query, len(results), top_score, user_id)
+        top_score = paginated_results[0].match_score if paginated_results else None
+        search_record = save_search(req.query, total_available, top_score, user_id)
     except Exception as e:
         logger.warning(f"Could not save search history: {e}")
 
     response = SearchResponse(
-        results=results,
-        total=len(results),
+        results=paginated_results,
+        total=total_available,
         query=req.query,
         search_id=search_record.get("id") if search_record else None,
     )
@@ -415,6 +422,45 @@ def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_user)):
     return {"message": "Job removed from tracker."}
 
 
+# ── Saved Jobs ─────────────────────────────────────────────────────────────────
+
+@app.post("/api/jobs/{job_id}/save")
+def save_job_endpoint(job_id: str, user_id: str = Depends(get_current_user)):
+    """Save a job for later review."""
+    try:
+        row = save_job(user_id, job_id)
+        return {"message": "Job saved successfully.", "job_id": job_id}
+    except Exception as e:
+        logger.error(f"Failed to save job: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save job.")
+
+
+@app.delete("/api/jobs/{job_id}/unsave")
+def unsave_job_endpoint(job_id: str, user_id: str = Depends(get_current_user)):
+    """Unsave a job."""
+    try:
+        deleted = unsave_job(user_id, job_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Job not found in saved jobs.")
+        return {"message": "Job removed from saved jobs."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to unsave job: {e}")
+        raise HTTPException(status_code=500, detail="Failed to unsave job.")
+
+
+@app.get("/api/saved-jobs")
+def get_saved_jobs_endpoint(user_id: str = Depends(get_current_user)):
+    """Get all saved jobs for the user."""
+    try:
+        saved = get_saved_jobs(user_id)
+        return {"jobs": saved, "count": len(saved)}
+    except Exception as e:
+        logger.error(f"Failed to fetch saved jobs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch saved jobs.")
+
+
 # ── Watch / Digest ─────────────────────────────────────────────────────────────
 
 @app.get("/api/watch")
@@ -466,10 +512,8 @@ def get_digest(user_id: str = Depends(get_current_user)):
         query_text = " ".join(keywords) if keywords else "software engineer"
 
     query_vec = embed(query_text)
-    # top_k capped at 10 (was 20). Digest skips LLM reranking — it runs
-    # concurrently with search and gaps on every dashboard load, so the
-    # cheaper vector-score ranking keeps memory flat on Render's 512 MB tier.
-    raw_results = vector_search(query_vec, top_k=10)
+    # Fetch 20 candidates for intelligent digest matching (newly indexed vs top-scoring)
+    raw_results = vector_search(query_vec, top_k=20)
 
     # Use vector similarity scores directly (skip rerank to avoid concurrent
     # LLM + PyTorch memory pressure with the search endpoint).
@@ -480,6 +524,18 @@ def get_digest(user_id: str = Depends(get_current_user)):
     target_companies = []
     if prefs:
         target_companies = [tc.lower() for tc in prefs.get("target_companies", []) if tc]
+
+    # Convert last_checked to datetime for comparison (if it exists)
+    from datetime import datetime
+    last_checked_dt = None
+    if last_checked:
+        try:
+            last_checked_dt = datetime.fromisoformat(last_checked.replace('Z', '+00:00'))
+        except Exception:
+            pass
+
+    # Build list with metadata: (job, is_newly_indexed)
+    jobs_with_metadata = []
 
     for item in raw_results:
         score = item.get("match_score", 0) or 0
@@ -504,24 +560,51 @@ def get_digest(user_id: str = Depends(get_current_user)):
             score = min(score + 5, 100)
             match_reason = f"Target company match. {match_reason}".strip()
 
-        digest_jobs.append(DigestJob(
-            id=item.get("id", ""),
+        job_id = item.get("id", "")
+        job_is_saved = is_job_saved(user_id, job_id)
+
+        # Check if job is newly indexed (indexed_at > last_checked_at)
+        is_newly_indexed = False
+        indexed_at_str = payload.get("indexed_at")
+        if indexed_at_str and last_checked_dt:
+            try:
+                indexed_at = datetime.fromisoformat(indexed_at_str.replace('Z', '+00:00'))
+                is_newly_indexed = indexed_at > last_checked_dt
+            except Exception:
+                pass
+
+        job = DigestJob(
+            id=job_id,
             title=payload.get("title", ""),
             company=payload.get("company", ""),
             match_score=score,
             match_reason=match_reason,
             posted_date=payload.get("posted_date"),
             source=payload.get("source", ""),
-        ))
+            job_is_saved=job_is_saved,
+        )
+        jobs_with_metadata.append((job, is_newly_indexed))
 
-    digest_jobs.sort(key=lambda j: j.match_score, reverse=True)
+    # Sort: newly indexed first, then by score descending
+    jobs_with_metadata.sort(
+        key=lambda x: (not x[1], -x[0].match_score)  # newly_indexed=True sorts first, then by score
+    )
+
+    # Count newly indexed jobs and build final list
+    digest_jobs = [job for job, _ in jobs_with_metadata]
+    newly_indexed_count = sum(1 for _, is_new in jobs_with_metadata if is_new)
 
     try:
         update_watch_last_checked(user_id)
     except Exception:
         pass
 
-    return DigestResponse(since=last_checked, new_matches=len(digest_jobs), jobs=digest_jobs[:10])
+    return DigestResponse(
+        since=last_checked,
+        new_matches=len(digest_jobs),
+        jobs=digest_jobs[:10],
+        newly_indexed_count=newly_indexed_count if newly_indexed_count <= 10 else min(newly_indexed_count, 10)
+    )
 
 
 @app.post("/api/digest/refresh")

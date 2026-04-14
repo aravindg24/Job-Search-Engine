@@ -21,8 +21,8 @@ api.interceptors.request.use(async (config) => {
 
 // ── Search ─────────────────────────────────────────────────────────────────────
 
-export const searchJobs = ({ query, top_k = 10, filters = null }) =>
-  api.post('/search', { query, top_k, filters }).then(r => r.data)
+export const searchJobs = ({ query, top_k = 10, offset = 0, filters = null }) =>
+  api.post('/search', { query, top_k, offset, filters }).then(r => r.data)
 
 export const explainMatch = ({ query, job_id }) =>
   api.post('/explain', { query, job_id }).then(r => r.data)
@@ -58,6 +58,17 @@ export const getTrackedJobs = () =>
 
 export const removeTrackedJob = (jobId) =>
   api.delete(`/track/${jobId}`).then(r => r.data)
+
+// ── Saved Jobs ─────────────────────────────────────────────────────────────────
+
+export const saveJob = (jobId) =>
+  api.post(`/jobs/${jobId}/save`).then(r => r.data)
+
+export const unsaveJob = (jobId) =>
+  api.delete(`/jobs/${jobId}/unsave`).then(r => r.data)
+
+export const getSavedJobs = () =>
+  api.get('/saved-jobs').then(r => r.data)
 
 // ── Watch / Digest ─────────────────────────────────────────────────────────────
 

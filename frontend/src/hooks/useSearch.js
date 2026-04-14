@@ -52,6 +52,8 @@ export function useSearch() {
   const [query,        setQuery]        = useState(saved?.query  || '')
   const [hasSearched,  setHasSearched]  = useState(!!saved)
   const [recentQueries, setRecentQueries] = useState(() => loadRecent())
+  const [offset,       setOffset]       = useState(0)
+  const [total,        setTotal]        = useState(0)
 
   // On mount: fetch server-side history and merge with local cache.
   // Local cache shows instantly (zero latency); server data updates if different.
@@ -82,31 +84,56 @@ export function useSearch() {
   const search = useCallback(async (queryText, options = {}) => {
     if (!queryText.trim()) return
     setQuery(queryText)
+    setOffset(0)
     setLoading(true)
     setError(null)
     setHasSearched(true)
 
     try {
-      const data = await searchJobs({ query: queryText, top_k: 10, ...options })
+      const data = await searchJobs({ query: queryText, top_k: 10, offset: 0, ...options })
       const hits  = data.results || []
       setResults(hits)
+      setTotal(data.total || 0)
       saveSession(queryText, hits)
       setRecentQueries(pushRecent(queryText))
     } catch (err) {
       setError(err.response?.data?.detail || 'Search failed. Make sure the backend is running.')
       setResults([])
+      setTotal(0)
     } finally {
       setLoading(false)
     }
   }, [])
+
+  const loadMore = useCallback(async (options = {}) => {
+    if (!query.trim() || loading) return
+    const nextOffset = offset + 10
+    if (nextOffset >= total) return // No more results
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const data = await searchJobs({ query, top_k: 10, offset: nextOffset, ...options })
+      const hits = data.results || []
+      setResults(prev => [...prev, ...hits])
+      setOffset(nextOffset)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to load more results.')
+    } finally {
+      setLoading(false)
+    }
+  }, [query, offset, total, loading])
 
   const reset = useCallback(() => {
     setResults([])
     setQuery('')
     setError(null)
     setHasSearched(false)
+    setOffset(0)
+    setTotal(0)
     clearSession()
   }, [])
 
-  return { results, loading, error, query, hasSearched, recentQueries, search, reset }
+  return { results, loading, error, query, hasSearched, recentQueries, search, reset, offset, total, loadMore }
 }

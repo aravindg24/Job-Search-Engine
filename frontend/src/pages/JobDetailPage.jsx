@@ -1,9 +1,9 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MatchBadge from '../components/shared/MatchBadge'
 import MatchBreakdown from '../components/job/MatchBreakdown'
 import PitchGenerator from '../components/job/PitchGenerator'
-import { trackJob } from '../utils/api'
+import { trackJob, saveJob, unsaveJob } from '../utils/api'
 import { toast } from '../components/shared/Toast'
 import { formatDate } from '../utils/format'
 
@@ -40,6 +40,14 @@ export default function JobDetailPage() {
   const [status, setStatus] = useState(null)
   const [saving, setSaving] = useState(false)
   const [showDesc, setShowDesc] = useState(false)
+  const [jobIsSaved, setJobIsSaved] = useState(job?.job_is_saved || false)
+  const [isSavingJob, setIsSavingJob] = useState(false)
+
+  useEffect(() => {
+    if (job) {
+      setJobIsSaved(job.job_is_saved || false)
+    }
+  }, [job])
 
   if (!job) {
     return (
@@ -72,6 +80,25 @@ export default function JobDetailPage() {
       toast('Failed to save', 'error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSaveJob = async () => {
+    setIsSavingJob(true)
+    try {
+      if (jobIsSaved) {
+        await unsaveJob(job.id)
+        setJobIsSaved(false)
+        toast('Removed from saved jobs')
+      } else {
+        await saveJob(job.id)
+        setJobIsSaved(true)
+        toast('Added to saved jobs')
+      }
+    } catch {
+      toast('Failed to save job', 'error')
+    } finally {
+      setIsSavingJob(false)
     }
   }
 
@@ -144,12 +171,20 @@ export default function JobDetailPage() {
             </a>
           )}
           <TrackButton
+            onClick={handleSaveJob}
+            disabled={isSavingJob}
+            active={jobIsSaved}
+            activeStyle={{ color: 'var(--accent)', borderColor: 'rgba(232,255,71,0.25)', backgroundColor: 'rgba(232,255,71,0.06)' }}
+          >
+            {jobIsSaved ? '♥ Saved' : 'Save Job'}
+          </TrackButton>
+          <TrackButton
             onClick={() => handleTrack('saved')}
             disabled={saving || status === 'saved'}
             active={status === 'saved'}
             activeStyle={{ color: '#16a34a', borderColor: 'rgba(34,197,94,0.25)', backgroundColor: 'rgba(34,197,94,0.06)' }}
           >
-            {status === 'saved' ? '✓ Saved' : 'Save to Tracker'}
+            {status === 'saved' ? '✓ Tracked' : 'Track Job'}
           </TrackButton>
           <TrackButton
             onClick={() => handleTrack('applied')}

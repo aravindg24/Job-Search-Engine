@@ -126,3 +126,16 @@ CREATE INDEX IF NOT EXISTS stories_user_id_idx ON stories(user_id);
 
 -- ── Company Watchlist (F7) ────────────────────────────────────────────────────
 ALTER TABLE watch_preferences ADD COLUMN IF NOT EXISTS target_companies JSONB DEFAULT '[]';
+
+-- ── Saved Jobs (Search Pagination + Save Feature) ────────────────────────────
+-- Tracks jobs saved by users for later review
+CREATE TABLE IF NOT EXISTS saved_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    saved_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, job_id)
+);
+
+CREATE INDEX IF NOT EXISTS saved_jobs_user_idx ON saved_jobs(user_id);
+CREATE INDEX IF NOT EXISTS saved_jobs_job_idx ON saved_jobs(job_id);

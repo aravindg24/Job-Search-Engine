@@ -13,7 +13,12 @@ class SearchFilters(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = Field(10, ge=1, le=50)
+    offset: int = Field(0, ge=0)
     filters: Optional[SearchFilters] = None
+
+
+class SaveJobRequest(BaseModel):
+    job_id: str
 
 
 class JobResult(BaseModel):
@@ -32,6 +37,7 @@ class JobResult(BaseModel):
     tags: List[str]
     match_score: Optional[float] = None
     match_reason: Optional[str] = None
+    job_is_saved: Optional[bool] = False
 
 
 class SearchResponse(BaseModel):
@@ -185,12 +191,14 @@ class DigestJob(BaseModel):
     match_reason: str
     posted_date: Optional[str]
     source: str
+    job_is_saved: Optional[bool] = False
 
 
 class DigestResponse(BaseModel):
     since: Optional[str]
     new_matches: int
     jobs: List[DigestJob]
+    newly_indexed_count: int = 0
 
 
 # ── Invite ──────────────────────────────────────────────────────────────────────

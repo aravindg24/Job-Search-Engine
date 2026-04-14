@@ -166,6 +166,53 @@ def update_watch_last_checked(user_id: str) -> None:
     ).eq("user_id", user_id).execute()
 
 
+# ── Saved Jobs ─────────────────────────────────────────────────────────────────
+
+def save_job(user_id: str, job_id: str) -> Dict[str, Any]:
+    """Save a job for a user. Returns the saved_job record."""
+    db = get_db()
+    result = db.table("saved_jobs").upsert({
+        "user_id": user_id,
+        "job_id": job_id,
+        "saved_at": datetime.now(timezone.utc).isoformat(),
+    }, on_conflict="user_id,job_id").execute()
+    return result.data[0] if result.data else {}
+
+
+def unsave_job(user_id: str, job_id: str) -> bool:
+    """Unsave a job for a user. Returns True if deleted."""
+    db = get_db()
+    result = db.table("saved_jobs").delete().eq("user_id", user_id).eq("job_id", job_id).execute()
+    return bool(result.data)
+
+
+def get_saved_jobs(user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+    """Get all saved jobs for a user."""
+    db = get_db()
+    result = (
+        db.table("saved_jobs")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("saved_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+
+
+def is_job_saved(user_id: str, job_id: str) -> bool:
+    """Check if a job is saved by a user."""
+    db = get_db()
+    result = (
+        db.table("saved_jobs")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("job_id", job_id)
+        .execute()
+    )
+    return bool(result.data)
+
+
 # ── Search History ─────────────────────────────────────────────────────────────
 
 def save_search(query: str, results_count: int, top_match_score: Optional[float], user_id: str) -> Dict[str, Any]:

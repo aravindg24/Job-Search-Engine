@@ -1,26 +1,53 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDigest } from '../../hooks/useDigest'
+import { saveJob, unsaveJob } from '../../utils/api'
 import MatchBadge from '../shared/MatchBadge'
 import { timeAgo } from '../../utils/format'
 
 export default function DigestPanel() {
   const { digest, loading, refreshing, error, fetch, refresh } = useDigest()
+  const [savingJobId, setSavingJobId] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => { fetch() }, [fetch])
+
+  const handleSaveToggle = async (e, job) => {
+    e.stopPropagation()
+    setSavingJobId(job.id)
+    try {
+      if (job.job_is_saved) {
+        await unsaveJob(job.id)
+      } else {
+        await saveJob(job.id)
+      }
+      // Refresh digest to get updated save status
+      await fetch()
+    } catch (err) {
+      console.error('Failed to save/unsave job:', err)
+    } finally {
+      setSavingJobId(null)
+    }
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
           {digest && (
-            <p className="text-xs text-secondary">
-              {digest.new_matches > 0
-                ? `${digest.new_matches} new match${digest.new_matches > 1 ? 'es' : ''}`
-                : 'No new matches'}
-              {digest.since && ` since ${timeAgo(digest.since)}`}
-            </p>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-secondary">
+                {digest.new_matches > 0
+                  ? `${digest.new_matches} new match${digest.new_matches > 1 ? 'es' : ''}`
+                  : 'No new matches'}
+                {digest.since && ` since ${timeAgo(digest.since)}`}
+              </p>
+              {digest.newly_indexed_count > 0 && (
+                <p className="text-xs text-accent">
+                  ({digest.newly_indexed_count} newly indexed, {digest.new_matches - digest.newly_indexed_count} top matches)
+                </p>
+              )}
+            </div>
           )}
         </div>
         <button
@@ -52,7 +79,7 @@ export default function DigestPanel() {
             <div
               key={job.id}
               onClick={() => navigate(`/job/${job.id}`, { state: { job: { ...job, match_score: job.match_score } } })}
-              className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer transition-all"
+              className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer transition-all group"
               style={{ backgroundColor: 'var(--surface)' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-4)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
@@ -65,6 +92,22 @@ export default function DigestPanel() {
               {job.posted_date && (
                 <span className="text-xs text-zinc-600 shrink-0">{timeAgo(job.posted_date)}</span>
               )}
+              <button
+                onClick={(e) => handleSaveToggle(e, job)}
+                disabled={savingJobId === job.id}
+                className="p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-40"
+                title={job.job_is_saved ? 'Unsave job' : 'Save job'}
+              >
+                {job.job_is_saved ? (
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--accent)' }}>
+                    <path d="M5 3v18l7-3 7 3V3z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ color: 'var(--text-4)' }}>
+                    <path d="M5 3v18l7-3 7 3V3z" />
+                  </svg>
+                )}
+              </button>
             </div>
           ))}
         </div>

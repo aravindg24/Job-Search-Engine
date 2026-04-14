@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 def run_search(
     query: str,
     top_k: int = 10,
+    offset: int = 0,
     filters: Optional[SearchFilters] = None,
     resume_profile: Optional[Dict[str, Any]] = None,
     clean_query: Optional[str] = None,
@@ -28,8 +29,9 @@ def run_search(
     # Step 2: Vector search.
     # Fetch more candidates when a location filter is active so the post-filter
     # below has enough to work with even if only a subset match.
+    # Also account for offset: fetch enough to satisfy offset + top_k
     location_filter = (filters.location or "").strip() if filters else ""
-    fetch_k = top_k * (4 if location_filter else 2)
+    fetch_k = (offset + top_k) * (4 if location_filter else 2)
 
     filter_dict = None
     if filters:
@@ -60,9 +62,9 @@ def run_search(
     # Step 4: LLM re-rank (pass resume profile for richer scoring)
     reranked = rerank(query, candidates, resume_profile=resume_profile)
 
-    # Step 5: Take top_k and format
+    # Step 5: Format all reranked results (pagination handled in app.py)
     results = []
-    for item in reranked[:top_k]:
+    for item in reranked:
         payload = item["payload"]
         results.append(JobResult(
             id=item["id"],
