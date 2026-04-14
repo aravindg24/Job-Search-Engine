@@ -15,11 +15,12 @@
 | **Resume-aware search** | Upload your PDF once; every search is automatically enriched with your profile context |
 | **Semantic matching** | BAAI/bge embeddings + Qdrant vector search — "ML Engineer" queries surface "Software Engineer" roles at AI companies |
 | **AI match scores** | Cerebras LLM re-ranks results and explains why each role fits (or doesn't), with strengths and gaps |
+| **Stream filters** | Filter results by track: Engineering, Data, or Product — auto-classified on ingest |
 | **Skill gap analysis** | See which skills your top matches demand that you're missing, with a strategic one-line insight |
 | **Pitch generator** | 3-format AI pitches (cover letter hook, cold email, why interested) mapped to the specific JD |
 | **Application tracker** | Kanban board — Saved / Applied / Interviewing / Offered / Rejected |
 | **Watch mode / digest** | Set preferences and check for new high-match jobs since your last visit |
-| **Multi-user auth** | Supabase Auth + JWT middleware — every user's resume, tracker, and preferences are completely private |
+| **Multi-user auth** | Supabase Auth — every user's resume, tracker, and preferences are completely private |
 
 ---
 
@@ -49,24 +50,32 @@ BGE asymmetric embeddings: query prefix `"Represent this job search query…"` f
 | Embeddings   | `BAAI/bge-small-en-v1.5` (384-dim, baked into Docker image) |
 | Vector DB    | Qdrant Cloud (cosine, 384 dims)                  |
 | LLM          | Cerebras `llama3.1-8b` — fast inference, pay-per-use |
-| Auth         | Supabase Auth + PyJWT middleware (HS256)         |
-| State DB     | Supabase (resume profiles, tracker, watch prefs) |
+| Auth         | Supabase Auth (JWT verified via `auth.get_user()`) |
+| State DB     | Supabase (resume profiles, tracker, watch prefs, ingest metrics) |
+| Dedup        | 2-stage: URL hash + `rapidfuzz` fuzzy title matching (threshold 92%) |
 | Hosting      | Vercel (frontend) + Render (backend)             |
-| Job ingestion| GitHub Actions cron — daily 6 AM UTC             |
+| Job ingestion| GitHub Actions cron — every hour                 |
 
 ---
 
 ## Data Sources
 
-Jobs are scraped daily and indexed into Qdrant:
+Jobs are scraped hourly and indexed into Qdrant. Two-stage deduplication (URL hash + fuzzy title match) removes near-duplicates before indexing.
 
 | Source | Notes |
 |---|---|
-| **SimplifyJobs** (GitHub) | New-grad positions, filtered to last 7 days, with direct apply URLs |
+| **SimplifyJobs** (GitHub) | New-grad positions (7-day filter) + internships (30-day filter), with direct apply URLs |
 | **Remotive** | Remote-first tech roles |
 | **Arbeitnow** | International tech jobs |
 | **HN Who's Hiring** | Monthly Hacker News hiring threads |
+| **Jobicy** | Remote tech jobs via public API |
+| **RemoteOK** | Remote tech jobs via RSS feed |
+| **Greenhouse** | 59 companies via public Boards API (no auth) |
+| **Lever** | 53 companies via public Postings API (no auth) |
+| **Ashby** | 60 companies via public Posting API (no auth) |
 | **Seed data** | 50+ curated roles from Anthropic, Perplexity, Vercel, Linear, Ramp, Modal, etc. |
+
+Company slugs for Greenhouse, Lever, and Ashby are configured in `backend/data/company_boards.json`. Add a company by dropping `{"company": "Name", "slug": "their-slug"}` into the relevant array.
 
 ---
 
@@ -111,7 +120,6 @@ CEREBRAS_MODEL=llama3.1-8b
 
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-public-key
-SUPABASE_JWT_SECRET=your-jwt-secret   # Settings → API → JWT → Legacy JWT Secret
 
 QDRANT_CLOUD_URL=https://your-cluster.qdrant.io
 QDRANT_API_KEY=your-qdrant-api-key
@@ -153,7 +161,7 @@ Open `http://localhost:5173` → sign up → go to **Profile** → upload your r
 python scripts/refresh_jobs.py
 ```
 
-Pulls from SimplifyJobs (7-day filter), Remotive, Arbeitnow, and HN Who's Hiring, then re-indexes into Qdrant.
+Pulls from all configured sources (SimplifyJobs, Remotive, Arbeitnow, HN Who's Hiring, Jobicy, RemoteOK, Greenhouse, Lever, Ashby), deduplicates, and re-indexes into Qdrant.
 
 ### Docker (full stack)
 
@@ -172,9 +180,9 @@ docker compose up
 |---|---|
 | **Render** (backend) | `render.yaml` in root — auto-deploys on push to `main` |
 | **Vercel** (frontend) | Root directory: `frontend`, framework: Vite |
-| **GitHub Actions** | `.github/workflows/ingest.yml` — daily cron at 6 AM UTC |
+| **GitHub Actions** | `.github/workflows/ingest.yml` — hourly cron, concurrency-locked |
 
-Required env vars on Render: `CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_JWT_SECRET`, `QDRANT_CLOUD_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `CORS_ORIGINS`.
+Required env vars on Render: `CEREBRAS_API_KEY`, `CEREBRAS_MODEL`, `SUPABASE_URL`, `SUPABASE_KEY`, `QDRANT_CLOUD_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `CORS_ORIGINS`.
 
 Required env vars on Vercel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL`.
 
@@ -185,7 +193,7 @@ Required env vars on Vercel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VIT
 All endpoints (except `/api/health`) require `Authorization: Bearer <supabase_jwt>`.
 
 ```
-POST /api/search          — semantic search with resume context
+POST /api/search          — semantic search with resume context (supports stream filter)
 POST /api/explain         — detailed match breakdown for a job
 POST /api/resume/upload   — parse and store resume PDF
 GET  /api/resume/profile  — fetch parsed resume profile
@@ -208,17 +216,17 @@ GET  /api/health          — health check
 ```
 direct/
 ├── backend/
-│   ├── app.py              # All FastAPI endpoints + JWT middleware
+│   ├── app.py              # All FastAPI endpoints + Supabase JWT middleware
 │   ├── config.py           # Settings + env vars (Pydantic BaseSettings)
 │   ├── models.py           # Pydantic request/response schemas
 │   ├── database.py         # Supabase CRUD helpers (all user-scoped)
-│   ├── indexer.py          # Embed + index pipeline
+│   ├── indexer.py          # Scrape → dedup (URL hash + rapidfuzz) → stream-tag → embed → upsert
 │   ├── Dockerfile          # Bakes BGE model at build time
 │   ├── search/
 │   │   ├── embedder.py     # BAAI/bge-small-en-v1.5 wrapper (asymmetric prefixes)
 │   │   ├── vector_store.py # Qdrant Cloud client + payload index
 │   │   ├── reranker.py     # Cerebras LLM re-ranking + explanation
-│   │   ├── pipeline.py     # Search orchestrator
+│   │   ├── pipeline.py     # Search orchestrator (stream filter support)
 │   │   └── gaps.py         # Gap analysis logic
 │   ├── resume/
 │   │   ├── parser.py       # PyMuPDF text extraction (in-memory, no disk write)
@@ -226,12 +234,19 @@ direct/
 │   ├── pitch/
 │   │   └── generator.py    # Pitch generation (3 types)
 │   ├── scraper/
-│   │   ├── simplify_github.py  # SimplifyJobs GitHub README (7-day filter)
+│   │   ├── base.py             # Shared helpers (clean_text, fetch_with_retry, etc.)
+│   │   ├── simplify_github.py  # SimplifyJobs GitHub README (7-day new-grad / 30-day intern)
 │   │   ├── hackernews.py       # HN Who's Hiring scraper
 │   │   ├── arbeitnow.py        # Arbeitnow API
-│   │   └── remotive.py         # Remotive API
+│   │   ├── remotive.py         # Remotive API
+│   │   ├── jobicy.py           # Jobicy remote-jobs API
+│   │   ├── remoteok.py         # RemoteOK RSS feed
+│   │   ├── greenhouse.py       # Greenhouse Boards API (company_boards.json)
+│   │   ├── lever.py            # Lever Postings API (company_boards.json)
+│   │   └── ashby.py            # Ashby Posting API (company_boards.json)
 │   └── data/
-│       └── seed_jobs.json  # Curated seed jobs (Anthropic, Perplexity, Vercel, Linear, etc.)
+│       ├── seed_jobs.json      # Curated seed jobs (Anthropic, Perplexity, Vercel, etc.)
+│       └── company_boards.json # 172 company slugs for Greenhouse / Lever / Ashby
 ├── frontend/
 │   └── src/
 │       ├── pages/
@@ -239,7 +254,7 @@ direct/
 │       │   ├── FeaturesPage.jsx    # /features — feature deep-dives
 │       │   ├── HowItWorksPage.jsx  # /how-it-works — 5-step guide
 │       │   ├── LoginPage.jsx       # Sign in / Sign up
-│       │   ├── SearchPage.jsx      # Main search (protected)
+│       │   ├── SearchPage.jsx      # Main search + stream filter (protected)
 │       │   ├── JobDetailPage.jsx   # Job detail + pitch generator (protected)
 │       │   ├── DashboardPage.jsx   # Gaps + tracker + digest (protected)
 │       │   └── ProfilePage.jsx     # Resume profile + watch settings (protected)
@@ -262,7 +277,7 @@ direct/
 │   └── refresh_jobs.py     # Standalone job refresh (used by GitHub Actions cron)
 ├── .github/
 │   └── workflows/
-│       └── ingest.yml      # Daily cron: 6 AM UTC — scrape + index
+│       └── ingest.yml      # Hourly cron — scrape + dedup + index (concurrency-locked)
 ├── render.yaml             # Render deployment config
 ├── supabase_schema.sql     # Tables + RLS policies — run in Supabase SQL editor
 └── docker-compose.yml      # Full stack (backend + frontend)
