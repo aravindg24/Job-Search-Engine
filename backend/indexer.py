@@ -191,9 +191,9 @@ def load_scraped_jobs() -> Tuple[List[dict], Dict[str, int]]:
             mod = importlib.import_module(module_path)
             fn = getattr(mod, fn_name)
             jobs = fn(**kwargs)
-            count = len(jobs)
-            source_counts[label] = count
-            logger.info(f"{label}: {count} jobs")
+            job_count = len(jobs)
+            source_counts[label] = job_count
+            logger.info(f"{label}: {job_count} jobs")
             scraped.extend(jobs)
         except Exception as e:
             logger.warning(f"{label} scraper failed: {e}")

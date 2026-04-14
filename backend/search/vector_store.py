@@ -33,9 +33,11 @@ def get_client() -> QdrantClient:
                 api_key=settings.qdrant_api_key,
             )
         else:
-            # Local development: in-memory
-            logger.info("Using Qdrant in-memory mode (local dev)")
-            _client = QdrantClient(":memory:")
+            # Local development: file-backed persistent store so indexer and API server share state
+            from pathlib import Path
+            local_path = str(Path(__file__).parent.parent / "qdrant_data")
+            logger.info(f"Using Qdrant local file store: {local_path}")
+            _client = QdrantClient(path=local_path)
     return _client
 
 

@@ -110,14 +110,18 @@ app.add_middleware(
 # ── Health (public) ────────────────────────────────────────────────────────────
 
 @app.get("/api/health")
-async def health():
-    return {"status": "ok", "jobs_indexed": count()}
+def health():
+    try:
+        jobs_indexed = count()
+    except Exception:
+        jobs_indexed = None
+    return {"status": "ok", "jobs_indexed": jobs_indexed}
 
 
 # ── Search ─────────────────────────────────────────────────────────────────────
 
 @app.post("/api/search", response_model=SearchResponse)
-async def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
+def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
@@ -158,7 +162,7 @@ async def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
 # ── Search History ─────────────────────────────────────────────────────────────
 
 @app.get("/api/search/history")
-async def search_history(user_id: str = Depends(get_current_user)):
+def search_history(user_id: str = Depends(get_current_user)):
     """Return the last 5 unique search queries for the user."""
     try:
         queries = get_search_history(user_id, limit=5)
@@ -171,7 +175,7 @@ async def search_history(user_id: str = Depends(get_current_user)):
 # ── Explain ────────────────────────────────────────────────────────────────────
 
 @app.post("/api/explain", response_model=ExplainResponse)
-async def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
+def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
     profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile") if profile_row else None
     result = run_explain(query=req.query, job_id=req.job_id, resume_profile=resume_profile)
@@ -189,6 +193,8 @@ async def explain(req: ExplainRequest, user_id: str = Depends(get_current_user))
 
 @app.post("/api/resume/upload")
 async def upload_resume(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
+    import asyncio
+
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
@@ -197,21 +203,21 @@ async def upload_resume(file: UploadFile = File(...), user_id: str = Depends(get
         raise HTTPException(status_code=400, detail="File too large. Max 10 MB.")
 
     try:
-        raw_text = extract_text(pdf_bytes)
+        raw_text = await asyncio.to_thread(extract_text, pdf_bytes)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
     if not raw_text or len(raw_text.strip()) < 50:
         raise HTTPException(status_code=422, detail="Could not extract text from PDF. Make sure it is not a scanned image.")
 
-    parsed = parse_profile(raw_text)
+    parsed = await asyncio.to_thread(parse_profile, raw_text)
 
     # Check if replacing an existing profile (re-upload) or creating a new one
-    existing = get_resume_profile(user_id)
+    existing = await asyncio.to_thread(get_resume_profile, user_id)
     is_reupload = existing is not None
 
     try:
-        row = save_resume_profile(raw_text, parsed, user_id)
+        row = await asyncio.to_thread(save_resume_profile, raw_text, parsed, user_id)
     except Exception as e:
         logger.error(f"Failed to save resume to Supabase: {e}")
         raise HTTPException(
@@ -229,7 +235,7 @@ async def upload_resume(file: UploadFile = File(...), user_id: str = Depends(get
 
 
 @app.get("/api/resume/profile")
-async def get_profile(user_id: str = Depends(get_current_user)):
+def get_profile(user_id: str = Depends(get_current_user)):
     row = get_resume_profile(user_id)
     if not row:
         raise HTTPException(status_code=404, detail="No resume profile found. Please upload a resume.")
@@ -239,7 +245,7 @@ async def get_profile(user_id: str = Depends(get_current_user)):
 # ── Pitch ──────────────────────────────────────────────────────────────────────
 
 @app.post("/api/pitch", response_model=PitchResponse)
-async def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
+def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
     valid_types = {"cover_letter_hook", "cold_email", "why_interested"}
     if req.pitch_type not in valid_types:
         raise HTTPException(status_code=400, detail=f"pitch_type must be one of {valid_types}")
@@ -270,7 +276,7 @@ async def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
 # ── Gap Analysis ───────────────────────────────────────────────────────────────
 
 @app.get("/api/gaps", response_model=GapAnalysisResponse)
-async def gaps(search_id: int = Query(None), user_id: str = Depends(get_current_user)):
+def gaps(search_id: int = Query(None), user_id: str = Depends(get_current_user)):
     profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile", {}) if profile_row else None
 
@@ -286,7 +292,7 @@ async def gaps(search_id: int = Query(None), user_id: str = Depends(get_current_
 # ── Application Tracker ────────────────────────────────────────────────────────
 
 @app.post("/api/track")
-async def track_job(req: TrackRequest, user_id: str = Depends(get_current_user)):
+def track_job(req: TrackRequest, user_id: str = Depends(get_current_user)):
     try:
         row = upsert_tracked_job(
             job_id=req.job_id,
@@ -306,7 +312,7 @@ async def track_job(req: TrackRequest, user_id: str = Depends(get_current_user))
 
 
 @app.get("/api/track", response_model=TrackerResponse)
-async def get_tracker(user_id: str = Depends(get_current_user)):
+def get_tracker(user_id: str = Depends(get_current_user)):
     try:
         jobs = get_tracked_jobs(user_id)
     except Exception as e:
@@ -341,7 +347,7 @@ async def get_tracker(user_id: str = Depends(get_current_user)):
 
 
 @app.delete("/api/track/{job_id}")
-async def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_user)):
+def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_user)):
     deleted = delete_tracked_job(job_id, user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Job not found in tracker.")
@@ -351,7 +357,7 @@ async def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_use
 # ── Watch / Digest ─────────────────────────────────────────────────────────────
 
 @app.get("/api/watch")
-async def get_watch(user_id: str = Depends(get_current_user)):
+def get_watch(user_id: str = Depends(get_current_user)):
     prefs = get_watch_preferences(user_id)
     if not prefs:
         return {"min_match_score": 70, "keywords": [], "locations": [], "company_stages": []}
@@ -364,7 +370,7 @@ async def get_watch(user_id: str = Depends(get_current_user)):
 
 
 @app.post("/api/watch")
-async def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user)):
+def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user)):
     try:
         row = save_watch_preferences(
             user_id=user_id,
@@ -380,7 +386,7 @@ async def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user))
 
 
 @app.get("/api/digest", response_model=DigestResponse)
-async def get_digest(user_id: str = Depends(get_current_user)):
+def get_digest(user_id: str = Depends(get_current_user)):
     prefs = get_watch_preferences(user_id)
     min_score = prefs.get("min_match_score", 70) if prefs else 70
     last_checked = prefs.get("last_checked_at") if prefs else None
@@ -442,7 +448,7 @@ async def get_digest(user_id: str = Depends(get_current_user)):
 
 
 @app.post("/api/digest/refresh")
-async def refresh_digest(user_id: str = Depends(get_current_user)):
+def refresh_digest(user_id: str = Depends(get_current_user)):
     # Full re-indexing is too memory-intensive to run inside the API server on
     # Render's free tier (512 MB). The job index is refreshed by running
     # `python indexer.py` separately (locally or via GitHub Actions CI).
@@ -457,7 +463,7 @@ async def refresh_digest(user_id: str = Depends(get_current_user)):
 # ── Invite ──────────────────────────────────────────────────────────────────────
 
 @app.post("/api/invite")
-async def invite_user(req: InviteRequest, user_id: str = Depends(get_current_user)):
+def invite_user(req: InviteRequest, user_id: str = Depends(get_current_user)):
     try:
         send_invite(req.email)
         return {"message": f"Invitation sent to {req.email}."}

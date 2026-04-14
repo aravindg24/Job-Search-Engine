@@ -4,6 +4,7 @@ Supabase client and CRUD helpers — all operations scoped to user_id.
 from supabase import create_client, Client
 from config import settings
 from typing import Optional, Dict, Any, List
+from datetime import datetime, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,13 +40,12 @@ def send_invite(email: str) -> None:
 
 def save_resume_profile(raw_text: str, parsed_profile: Dict[str, Any], user_id: str) -> Dict[str, Any]:
     db = get_db()
-    # Keep only latest profile per user
-    db.table("resume_profiles").delete().eq("user_id", user_id).execute()
-    result = db.table("resume_profiles").insert({
+    result = db.table("resume_profiles").upsert({
         "raw_text": raw_text,
         "parsed_profile": parsed_profile,
         "user_id": user_id,
-    }).execute()
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+    }, on_conflict="user_id").execute()
     return result.data[0] if result.data else {}
 
 
@@ -91,7 +91,7 @@ def upsert_tracked_job(
         "notes": notes,
         "pitch": pitch,
         "applied_date": applied_date,
-        "updated_at": "now()",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "user_id": user_id,
     }
     result = db.table("tracked_jobs").upsert(data, on_conflict="job_id").execute()
@@ -134,14 +134,13 @@ def save_watch_preferences(
     company_stages: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     db = get_db()
-    db.table("watch_preferences").delete().eq("user_id", user_id).execute()
-    result = db.table("watch_preferences").insert({
+    result = db.table("watch_preferences").upsert({
         "user_id": user_id,
         "min_match_score": min_match_score,
         "keywords": keywords or [],
         "locations": locations or [],
         "company_stages": company_stages or [],
-    }).execute()
+    }, on_conflict="user_id").execute()
     return result.data[0] if result.data else {}
 
 
@@ -160,7 +159,9 @@ def get_watch_preferences(user_id: str) -> Optional[Dict[str, Any]]:
 
 def update_watch_last_checked(user_id: str) -> None:
     db = get_db()
-    db.table("watch_preferences").update({"last_checked_at": "now()"}).eq("user_id", user_id).execute()
+    db.table("watch_preferences").update(
+        {"last_checked_at": datetime.now(timezone.utc).isoformat()}
+    ).eq("user_id", user_id).execute()
 
 
 # ── Search History ─────────────────────────────────────────────────────────────
