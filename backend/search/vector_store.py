@@ -41,31 +41,20 @@ def get_client() -> QdrantClient:
     return _client
 
 
-def create_collection() -> None:
-    """Drop and recreate the collection so every indexer run starts with only live jobs."""
-    client = get_client()
-    collections = [c.name for c in client.get_collections().collections]
-    if settings.qdrant_collection in collections:
-        client.delete_collection(settings.qdrant_collection)
-        logger.info(f"Dropped existing collection: {settings.qdrant_collection}")
-    client.create_collection(
-        collection_name=settings.qdrant_collection,
-        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
-    )
-    logger.info(f"Created fresh collection: {settings.qdrant_collection}")
+_INDEX_SPECS = [
+    ("company",       PayloadSchemaType.KEYWORD),
+    ("location",      PayloadSchemaType.KEYWORD),
+    ("remote",        PayloadSchemaType.KEYWORD),
+    ("stream",        PayloadSchemaType.KEYWORD),
+    ("source",        PayloadSchemaType.KEYWORD),
+    ("company_stage", PayloadSchemaType.KEYWORD),
+    ("salary_min",    PayloadSchemaType.FLOAT),
+    ("salary_max",    PayloadSchemaType.FLOAT),
+]
 
-    # Create payload indexes for filterable fields
-    _index_specs = [
-        ("company", PayloadSchemaType.KEYWORD),
-        ("location", PayloadSchemaType.KEYWORD),
-        ("remote", PayloadSchemaType.KEYWORD),
-        ("stream", PayloadSchemaType.KEYWORD),
-        ("source", PayloadSchemaType.KEYWORD),
-        ("company_stage", PayloadSchemaType.KEYWORD),
-        ("salary_min", PayloadSchemaType.FLOAT),
-        ("salary_max", PayloadSchemaType.FLOAT),
-    ]
-    for field, schema in _index_specs:
+
+def _create_payload_indexes(client: QdrantClient) -> None:
+    for field, schema in _INDEX_SPECS:
         try:
             client.create_payload_index(
                 collection_name=settings.qdrant_collection,
@@ -75,6 +64,38 @@ def create_collection() -> None:
         except Exception as e:
             logger.warning(f"Could not create payload index for '{field}': {e}")
     logger.info("Payload indexes created.")
+
+
+def ensure_collection() -> None:
+    """Create the collection only if it doesn't already exist.
+    Called by the API server on startup — never drops existing data."""
+    client = get_client()
+    existing = [c.name for c in client.get_collections().collections]
+    if settings.qdrant_collection in existing:
+        logger.info(f"Collection '{settings.qdrant_collection}' already exists — skipping create.")
+        return
+    client.create_collection(
+        collection_name=settings.qdrant_collection,
+        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
+    )
+    logger.info(f"Created collection: {settings.qdrant_collection}")
+    _create_payload_indexes(client)
+
+
+def create_collection() -> None:
+    """Drop and recreate the collection so every indexer run starts with only live jobs.
+    Called only by the indexer — never by the API server."""
+    client = get_client()
+    existing = [c.name for c in client.get_collections().collections]
+    if settings.qdrant_collection in existing:
+        client.delete_collection(settings.qdrant_collection)
+        logger.info(f"Dropped existing collection: {settings.qdrant_collection}")
+    client.create_collection(
+        collection_name=settings.qdrant_collection,
+        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
+    )
+    logger.info(f"Created fresh collection: {settings.qdrant_collection}")
+    _create_payload_indexes(client)
 
 
 def _to_uuid(job_id: str) -> str:

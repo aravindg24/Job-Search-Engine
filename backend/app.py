@@ -27,7 +27,7 @@ from models import (
     JDExtractRequest, JDExtractResponse,
     StoryCreate, Story,
 )
-from search.vector_store import create_collection, count, search as vector_search
+from search.vector_store import create_collection, ensure_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
 from search.gaps import analyze_gaps
 from search.embedder import embed, warmup as warmup_embedder
@@ -87,8 +87,11 @@ async def lifespan(app: FastAPI):
         logger.error(f"Model warmup failed (non-fatal): {e}")
 
     # Step 2: Verify Qdrant Cloud connection and collection.
+    # Use ensure_collection (not create_collection) — we must never drop the
+    # indexed jobs on a normal API server restart. create_collection is called
+    # only by the indexer before it loads fresh data.
     try:
-        create_collection()
+        ensure_collection()
         n = count()
         logger.info(f"Qdrant ready — {n} jobs indexed.")
     except Exception as e:
