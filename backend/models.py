@@ -75,19 +75,11 @@ class GapItem(BaseModel):
     severity: str = "medium"  # low | medium | high
 
 
-class EvalBlock(BaseModel):
-    title: str
-    score: int          # 0-100
-    items: List[str]
-    summary: str        # one sentence
-
-
 class ExplainResponse(BaseModel):
     match_score: float
     strengths: List[Any]
     gaps: List[Any]
     suggestion: str
-    blocks: Optional[List[EvalBlock]] = None  # 6-block evaluation (None if LLM unavailable)
 
 
 # ── Resume ─────────────────────────────────────────────────────────────────────
@@ -222,7 +214,6 @@ class JDExtractResponse(BaseModel):
     remote: bool
     match_score: Optional[float] = None
     pitch_suggestion: Optional[str] = None
-    blocks: Optional[List[EvalBlock]] = None
 
 
 # ── STAR Story Bank (F4) ───────────────────────────────────────────────────────

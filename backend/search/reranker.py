@@ -51,38 +51,25 @@ Company: {company}
 Description: {description}
 Requirements: {requirements}
 
-Evaluate the candidate across exactly these 6 dimensions. For each, provide:
-- score: 0-100 (honest, not inflated)
-- items: 2-4 specific bullet points grounded in the candidate's actual background
-- summary: one concrete sentence
+Evaluate the candidate across these dimensions:
+- Skills Match — how well technical/domain skills map to explicit requirements
+- Experience Match — how well seniority, role history, and project scope align
+- Culture Fit — alignment with company values, stage, or working style
+- Growth Potential — evidence they can grow into or beyond this role
+- Red Flags — specific mismatches, gaps, or concerns
 
-Dimensions:
-1. Skills Match — how well the candidate's technical or domain skills map to explicit job requirements
-2. Experience Match — how well seniority, role history, and project scope align with what the role needs
-3. Culture Fit — signals of alignment with company values, stage (startup/enterprise), or working style
-4. Growth Potential — concrete evidence the candidate can grow into or beyond this role
-5. Red Flags — specific mismatches, gaps, or concerns (use empty items list if none exist)
-6. Action Plan — 2-3 actionable things the candidate should do before applying
-
-Also return the legacy flat fields for backward compatibility.
-- Strengths must reference specific skills or experiences the candidate actually has.
-- Gaps must reference specific requirements absent or thin in the candidate's profile.
-- Do not invent skills or echo back job description language as strengths.
+Rules:
+- Strengths must reference specific skills or experiences the candidate actually has
+- Gaps must reference specific requirements absent or thin in the candidate's profile
+- Do not invent skills or echo back job description language as strengths
+- match_score should be 0-100, honest and not inflated
 
 Return ONLY valid JSON with NO markdown or code blocks:
 {{
   "match_score": <number 0-100>,
   "strengths": ["<specific match>", "<another match>"],
   "gaps": ["<missing requirement>"],
-  "suggestion": "<one actionable sentence>",
-  "blocks": [
-    {{"title": "Skills Match",      "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
-    {{"title": "Experience Match",  "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
-    {{"title": "Culture Fit",       "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
-    {{"title": "Growth Potential",  "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
-    {{"title": "Red Flags",         "score": <0-100>, "items": [],                  "summary": "<sentence>"}},
-    {{"title": "Action Plan",       "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}}
-  ]
+  "suggestion": "<one actionable sentence>"
 }}"""
 
 

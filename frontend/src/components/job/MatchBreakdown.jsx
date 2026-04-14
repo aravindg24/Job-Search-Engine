@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { explainMatch } from '../../utils/api'
 import MatchBadge from '../shared/MatchBadge'
-import EvalBlockCard from './EvalBlockCard'
 
 export default function MatchBreakdown({ job, query }) {
   const [explain, setExplain] = useState(null)
@@ -72,16 +71,6 @@ export default function MatchBreakdown({ job, query }) {
       {explain.suggestion && (
         <div className="border border-border rounded-xl p-4 text-sm text-secondary italic leading-relaxed" style={{ backgroundColor: 'var(--surface)' }}>
           {explain.suggestion}
-        </div>
-      )}
-
-      {/* 6-block evaluation (F1) */}
-      {explain.blocks?.length > 0 && (
-        <div className="mt-5 space-y-3">
-          <p className="text-xs uppercase tracking-wider text-secondary">Detailed Evaluation</p>
-          {explain.blocks.map((b, i) => (
-            <EvalBlockCard key={i} block={b} />
-          ))}
         </div>
       )}
     </div>

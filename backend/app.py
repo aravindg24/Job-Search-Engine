@@ -216,7 +216,6 @@ def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
         strengths=result.get("strengths", []),
         gaps=result.get("gaps", []),
         suggestion=result.get("suggestion", ""),
-        blocks=result.get("blocks"),
     )
 
 
@@ -583,7 +582,6 @@ def extract_jd(req: JDExtractRequest, user_id: str = Depends(get_current_user)):
         remote=job.get("remote", False),
         match_score=explain_result.get("match_score") if explain_result else None,
         pitch_suggestion=explain_result.get("suggestion") if explain_result else None,
-        blocks=explain_result.get("blocks") if explain_result else None,
     )
 
 

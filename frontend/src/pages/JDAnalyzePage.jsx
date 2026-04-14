@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useJDExtract } from '../hooks/useJDExtract'
-import EvalBlockCard from '../components/job/EvalBlockCard'
 import MatchBadge from '../components/shared/MatchBadge'
 
 export default function JDAnalyzePage() {
@@ -100,18 +99,6 @@ export default function JDAnalyzePage() {
                 Suggestion:{' '}
               </span>
               {result.pitch_suggestion}
-            </div>
-          )}
-
-          {/* 6-block evaluation */}
-          {result.blocks?.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>
-                Detailed Evaluation
-              </p>
-              {result.blocks.map((b, i) => (
-                <EvalBlockCard key={i} block={b} />
-              ))}
             </div>
           )}
 
