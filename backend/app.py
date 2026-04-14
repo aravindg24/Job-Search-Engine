@@ -191,7 +191,7 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
         search_id=search_record.get("id") if search_record else None,
     )
     # Free the large results list (job payloads + vectors) before returning.
-    del results
+    del all_results, paginated_results
     gc.collect()
     return response
 
