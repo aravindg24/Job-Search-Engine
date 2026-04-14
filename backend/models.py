@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List, Any, Dict
 
 
@@ -12,7 +12,7 @@ class SearchFilters(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-    top_k: int = 10
+    top_k: int = Field(10, ge=1, le=50)
     filters: Optional[SearchFilters] = None
 
 
@@ -75,11 +75,19 @@ class GapItem(BaseModel):
     severity: str = "medium"  # low | medium | high
 
 
+class EvalBlock(BaseModel):
+    title: str
+    score: int          # 0-100
+    items: List[str]
+    summary: str        # one sentence
+
+
 class ExplainResponse(BaseModel):
     match_score: float
     strengths: List[Any]
     gaps: List[Any]
     suggestion: str
+    blocks: Optional[List[EvalBlock]] = None  # 6-block evaluation (None if LLM unavailable)
 
 
 # ── Resume ─────────────────────────────────────────────────────────────────────
@@ -107,6 +115,7 @@ class PitchResponse(BaseModel):
     key_mappings: List[Any]
     framing_advice: str
     pitch_type: str
+    warning: Optional[str] = None  # set when match_score < 40
 
 
 # ── Gap Analysis ───────────────────────────────────────────────────────────────
@@ -173,6 +182,7 @@ class WatchRequest(BaseModel):
     keywords: List[str] = []
     locations: List[str] = []
     company_stages: List[str] = []
+    target_companies: List[str] = []  # F7: company watchlist
 
 
 class DigestJob(BaseModel):
@@ -194,4 +204,42 @@ class DigestResponse(BaseModel):
 # ── Invite ──────────────────────────────────────────────────────────────────────
 
 class InviteRequest(BaseModel):
-    email: str
+    email: EmailStr
+
+
+# ── JD Extraction (F2) ─────────────────────────────────────────────────────────
+
+class JDExtractRequest(BaseModel):
+    url: str
+    query: Optional[str] = None
+
+
+class JDExtractResponse(BaseModel):
+    job_text: str
+    title: str
+    company: str
+    location: str
+    remote: bool
+    match_score: Optional[float] = None
+    pitch_suggestion: Optional[str] = None
+    blocks: Optional[List[EvalBlock]] = None
+
+
+# ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
+
+class StoryCreate(BaseModel):
+    situation: str
+    task: str
+    action: str
+    result: str
+    skills_demonstrated: List[str] = []
+
+
+class Story(BaseModel):
+    id: int
+    situation: str
+    task: str
+    action: str
+    result: str
+    skills_demonstrated: List[str]
+    created_at: Optional[str] = None

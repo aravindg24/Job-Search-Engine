@@ -5,7 +5,7 @@ import requests
 import logging
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
-from scraper.base import make_id, clean_text, extract_remote
+from scraper.base import make_deterministic_id, clean_text, extract_remote
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,9 @@ def scrape(limit: int = 50) -> List[Dict[str, Any]]:
             remote_val = item.get("remote")
             remote = bool(remote_val) if remote_val is not None else extract_remote(location + " " + description)
 
+            source_url = item.get("url", "")
             jobs.append({
-                "id": make_id("arb"),
+                "id": make_deterministic_id(source_url) if source_url else make_deterministic_id(f"arb-{item.get('slug', '')}"),
                 "title": item.get("title", "Software Engineer")[:100],
                 "company": item.get("company_name", "Unknown")[:100],
                 "location": location[:100],
@@ -49,9 +50,11 @@ def scrape(limit: int = 50) -> List[Dict[str, Any]]:
                 "description": description[:2000],
                 "requirements": tags[:10],
                 "salary_range": None,
+                "salary_min": None,
+                "salary_max": None,
                 "company_stage": None,
                 "source": "arbeitnow",
-                "source_url": item.get("url", ""),
+                "source_url": source_url,
                 "posted_date": _parse_date(item.get("created_at")),
                 "tags": tags[:10],
             })

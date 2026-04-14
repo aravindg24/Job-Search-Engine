@@ -10,6 +10,15 @@ from collections import Counter
 
 from config import settings
 
+_cerebras_client = None
+
+def _get_cerebras_client():
+    global _cerebras_client
+    if _cerebras_client is None:
+        from cerebras.cloud.sdk import Cerebras
+        _cerebras_client = Cerebras(api_key=settings.cerebras_api_key)
+    return _cerebras_client
+
 logger = logging.getLogger(__name__)
 
 _INSIGHT_PROMPT = """Given a candidate's skills and the skill demands across their top {n} job matches:
@@ -106,8 +115,7 @@ def _generate_insight(n: int, candidate_skills: set, missing: List[Dict], strong
             return f"Your {top_strong} skills are well-aligned with your top matches."
         return "Upload your resume to get personalized skill gap insights."
 
-    from cerebras.cloud.sdk import Cerebras
-    client = Cerebras(api_key=settings.cerebras_api_key)
+    client = _get_cerebras_client()
 
     skills_list = ", ".join(sorted(candidate_skills)[:20]) or "Not specified"
     missing_with_counts = ", ".join(f"{s['skill']} ({s['demanded_by']}/{n})" for s in missing[:5]) or "None identified"

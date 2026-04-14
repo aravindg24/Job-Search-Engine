@@ -19,6 +19,8 @@ Extract:
   - data: data scientists, data analysts, data engineers, BI, research scientists, quant analysts
   - product: product managers, UX/UI designers, user researchers, product marketers, program managers
   - other: anything else (sales, finance, legal, ops, etc.)
+- positioning: a 1-2 sentence professional positioning statement that captures who this person is and where they are headed. Be specific to their actual background — reference their domain, level, and direction (e.g. "Backend engineer with 4 years of distributed systems work moving toward staff-level architecture roles. Owns high-throughput Kafka/Kubernetes services end-to-end."). Do NOT be generic.
+- differentiators: a list of 3-5 specific, concrete things that make this candidate stand out vs. typical applicants for similar roles. Reference actual projects, scale, outcomes, or contributions (e.g. "Led zero-downtime migration of 50M-row Postgres cluster", "Contributed to PyTorch core", "Built search product used by 2M users"). Avoid vague statements like "strong communicator".
 - summary: 2-sentence professional summary
 - skills: object with these keys (each an array of strings, use whichever apply):
   - languages: programming languages (Python, SQL, JavaScript, R, etc.)
@@ -130,10 +132,13 @@ def _fallback_profile(resume_text: str) -> Dict[str, Any]:
         if 1 <= y <= 20:
             years = max(years, y)
 
+    summary = "Profile extracted from resume text (AI parsing unavailable)."
     return {
         "name": name,
         "stream": stream,
-        "summary": "Profile extracted from resume text (AI parsing unavailable).",
+        "positioning": summary,
+        "differentiators": [],
+        "summary": summary,
         "skills": found,
         "experience_years": years,
         "education": [],
@@ -162,9 +167,17 @@ def build_search_context(profile: Dict[str, Any]) -> str:
     stream = profile.get("stream", "")
     stream_clause = f"Stream: {stream}. " if stream else ""
 
+    positioning = profile.get("positioning", "")
+    positioning_clause = f"Positioning: {positioning} " if positioning else ""
+
+    differentiators = profile.get("differentiators", [])
+    diff_clause = f"Differentiators: {'; '.join(differentiators[:3])}. " if differentiators else ""
+
     return (
         f"Candidate: {profile.get('name', '')}. "
         f"{stream_clause}"
+        f"{positioning_clause}"
+        f"{diff_clause}"
         f"{profile.get('summary', '')} "
         f"Skills: {', '.join(all_skills[:20])}. "
         f"Projects: {', '.join(project_names[:5])}. "

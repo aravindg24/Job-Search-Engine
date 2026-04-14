@@ -110,3 +110,19 @@ CREATE TABLE IF NOT EXISTS ingest_runs (
     total_indexed INTEGER,
     duration_seconds REAL
 );
+
+-- ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS stories (
+    id                   SERIAL PRIMARY KEY,
+    user_id              UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    situation            TEXT NOT NULL,
+    task                 TEXT NOT NULL,
+    action               TEXT NOT NULL,
+    result               TEXT NOT NULL,
+    skills_demonstrated  TEXT[] DEFAULT '{}',
+    created_at           TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS stories_user_id_idx ON stories(user_id);
+
+-- ── Company Watchlist (F7) ────────────────────────────────────────────────────
+ALTER TABLE watch_preferences ADD COLUMN IF NOT EXISTS target_companies JSONB DEFAULT '[]';

@@ -3,6 +3,7 @@ import { useResume } from '../hooks/useResume'
 import ResumeUpload from '../components/profile/ResumeUpload'
 import ParsedProfile from '../components/profile/ParsedProfile'
 import WatchSettings from '../components/profile/WatchSettings'
+import StoryBank from '../components/profile/StoryBank'
 import { toast } from '../components/shared/Toast'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { inviteUser } from '../utils/api'
@@ -63,8 +64,8 @@ export default function ProfilePage() {
       if (isOnboarding) {
         navigate('/home', { replace: true })
       }
-    } catch {
-      toast(error || 'Upload failed', 'error')
+    } catch (err) {
+      toast(err?.response?.data?.detail || err?.message || 'Upload failed', 'error')
     }
   }
 
@@ -131,6 +132,11 @@ export default function ProfilePage() {
       {/* Watch preferences */}
       <Section title="Watch Preferences">
         <WatchSettings />
+      </Section>
+
+      {/* Story Bank */}
+      <Section title="Story Bank">
+        <StoryBank />
       </Section>
 
       {/* Invite */}

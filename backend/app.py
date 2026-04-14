@@ -24,6 +24,8 @@ from models import (
     TrackRequest, TrackerResponse, TrackerStats, TrackedJob,
     WatchRequest, DigestResponse, DigestJob,
     InviteRequest,
+    JDExtractRequest, JDExtractResponse,
+    StoryCreate, Story,
 )
 from search.vector_store import create_collection, count, search as vector_search
 from search.pipeline import run_search, run_explain
@@ -38,7 +40,11 @@ from database import (
     upsert_tracked_job, get_tracked_jobs, delete_tracked_job,
     save_watch_preferences, get_watch_preferences, update_watch_last_checked,
     save_search, get_search_history, send_invite,
+    get_db,
+    create_story, get_stories, delete_story,
 )
+from search.reranker import explain as reranker_explain
+from jd_extractor import fetch_and_extract
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -186,6 +192,7 @@ def explain(req: ExplainRequest, user_id: str = Depends(get_current_user)):
         strengths=result.get("strengths", []),
         gaps=result.get("gaps", []),
         suggestion=result.get("suggestion", ""),
+        blocks=result.get("blocks"),
     )
 
 
@@ -263,13 +270,44 @@ def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
     job = results[0].payload
     profile_row = get_resume_profile(user_id)
     resume_profile = profile_row.get("parsed_profile", {}) if profile_row else {}
-    result = generate_pitch(resume_profile, job, req.pitch_type)
+
+    # F6: score threshold guard — warn if match_score < 40
+    warning = None
+    try:
+        tracked = (
+            get_db()
+            .table("tracked_jobs")
+            .select("match_score")
+            .eq("job_id", f"{user_id}_{req.job_id}")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if tracked.data:
+            ms = tracked.data[0].get("match_score")
+            if ms is not None and ms < 40:
+                warning = (
+                    f"Your match score for this role is {ms:.0f}/100. "
+                    "Consider addressing the gaps before pitching."
+                )
+    except Exception:
+        pass
+
+    # F4: inject STAR stories into pitch
+    stories = []
+    try:
+        stories = get_stories(user_id)
+    except Exception:
+        pass
+
+    result = generate_pitch(resume_profile, job, req.pitch_type, stories=stories)
 
     return PitchResponse(
         pitch=result.get("pitch", ""),
         key_mappings=result.get("key_mappings", []),
         framing_advice=result.get("framing_advice", ""),
         pitch_type=req.pitch_type,
+        warning=warning,
     )
 
 
@@ -360,12 +398,13 @@ def remove_tracked_job(job_id: str, user_id: str = Depends(get_current_user)):
 def get_watch(user_id: str = Depends(get_current_user)):
     prefs = get_watch_preferences(user_id)
     if not prefs:
-        return {"min_match_score": 70, "keywords": [], "locations": [], "company_stages": []}
+        return {"min_match_score": 70, "keywords": [], "locations": [], "company_stages": [], "target_companies": []}
     return {
         "min_match_score": prefs.get("min_match_score", 70),
         "keywords": prefs.get("keywords", []),
         "locations": prefs.get("locations", []),
         "company_stages": prefs.get("company_stages", []),
+        "target_companies": prefs.get("target_companies", []),
     }
 
 
@@ -378,6 +417,7 @@ def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user)):
             keywords=req.keywords,
             locations=req.locations,
             company_stages=req.company_stages,
+            target_companies=req.target_companies,
         )
     except Exception as e:
         logger.error(f"Failed to save watch preferences: {e}")
@@ -414,6 +454,10 @@ def get_digest(user_id: str = Depends(get_current_user)):
     for item in raw_results:
         item["match_score"] = round(item.get("score", 0) * 100)
         item["match_reason"] = "Strong semantic match based on your profile."
+    target_companies = []
+    if prefs:
+        target_companies = [tc.lower() for tc in prefs.get("target_companies", []) if tc]
+
     for item in raw_results:
         score = item.get("match_score", 0) or 0
         if score < min_score:
@@ -429,15 +473,25 @@ def get_digest(user_id: str = Depends(get_current_user)):
                     continue
             if stages and job_stage and job_stage not in stages:
                 continue
+
+        # F7: boost score +5 for target company matches
+        match_reason = item.get("match_reason", "")
+        job_company = (payload.get("company") or "").lower()
+        if target_companies and any(tc in job_company for tc in target_companies):
+            score = min(score + 5, 100)
+            match_reason = f"Target company match. {match_reason}".strip()
+
         digest_jobs.append(DigestJob(
             id=item.get("id", ""),
             title=payload.get("title", ""),
             company=payload.get("company", ""),
             match_score=score,
-            match_reason=item.get("match_reason", ""),
+            match_reason=match_reason,
             posted_date=payload.get("posted_date"),
             source=payload.get("source", ""),
         ))
+
+    digest_jobs.sort(key=lambda j: j.match_score, reverse=True)
 
     try:
         update_watch_last_checked(user_id)
@@ -472,3 +526,69 @@ def invite_user(req: InviteRequest, user_id: str = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Invite failed for {req.email}: {e}")
         raise HTTPException(status_code=500, detail="Failed to send invitation.")
+
+
+# ── JD Extraction from URL (F2) ────────────────────────────────────────────────
+
+@app.post("/api/jd/extract", response_model=JDExtractResponse)
+def extract_jd(req: JDExtractRequest, user_id: str = Depends(get_current_user)):
+    try:
+        job = fetch_and_extract(req.url)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error(f"JD extraction failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to extract job from URL.")
+
+    profile_row = get_resume_profile(user_id)
+    resume_profile = profile_row.get("parsed_profile", {}) if profile_row else {}
+
+    explain_result = None
+    if resume_profile:
+        try:
+            query = req.query or f"{job.get('title', '')} at {job.get('company', '')}"
+            explain_result = reranker_explain(query, job, resume_profile=resume_profile)
+        except Exception as e:
+            logger.warning(f"Explain failed during JD extraction: {e}")
+
+    return JDExtractResponse(
+        job_text=job.get("description", ""),
+        title=job.get("title", ""),
+        company=job.get("company", ""),
+        location=job.get("location", ""),
+        remote=job.get("remote", False),
+        match_score=explain_result.get("match_score") if explain_result else None,
+        pitch_suggestion=explain_result.get("suggestion") if explain_result else None,
+        blocks=explain_result.get("blocks") if explain_result else None,
+    )
+
+
+# ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
+
+@app.post("/api/stories", response_model=Story)
+def add_story(req: StoryCreate, user_id: str = Depends(get_current_user)):
+    row = create_story(
+        user_id=user_id,
+        situation=req.situation,
+        task=req.task,
+        action=req.action,
+        result=req.result,
+        skills_demonstrated=req.skills_demonstrated,
+    )
+    if not row:
+        raise HTTPException(status_code=500, detail="Failed to save story.")
+    return Story(**row)
+
+
+@app.get("/api/stories", response_model=list[Story])
+def list_stories(user_id: str = Depends(get_current_user)):
+    rows = get_stories(user_id)
+    return [Story(**r) for r in rows]
+
+
+@app.delete("/api/stories/{story_id}")
+def remove_story(story_id: int, user_id: str = Depends(get_current_user)):
+    deleted = delete_story(story_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Story not found.")
+    return {"message": "Story deleted."}

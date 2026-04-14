@@ -4,7 +4,7 @@ Scraper for Hacker News "Who is Hiring?" monthly threads.
 import requests
 import logging
 from typing import List, Dict, Any, Optional
-from scraper.base import make_id, clean_text, extract_remote
+from scraper.base import make_deterministic_id, clean_text, extract_remote
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +47,9 @@ def parse_comment(comment_id: int) -> Optional[Dict[str, Any]]:
         title = lines[0].strip() if lines else "Software Engineer"
         company = lines[1].strip() if len(lines) > 1 else "Unknown"
 
+        source_url = f"https://news.ycombinator.com/item?id={comment_id}"
         return {
-            "id": make_id("hn"),
+            "id": make_deterministic_id(source_url),
             "title": title[:100],
             "company": company[:100],
             "location": "Unknown",
@@ -56,9 +57,11 @@ def parse_comment(comment_id: int) -> Optional[Dict[str, Any]]:
             "description": text[:2000],
             "requirements": [],
             "salary_range": None,
+            "salary_min": None,
+            "salary_max": None,
             "company_stage": None,
             "source": "hackernews",
-            "source_url": f"https://news.ycombinator.com/item?id={comment_id}",
+            "source_url": source_url,
             "posted_date": None,
             "tags": ["hackernews"],
         }

@@ -30,10 +30,8 @@ Jobs to rank:
 {jobs_list}
 
 Instructions:
-- The candidate's profile may indicate a stream (engineering, data, product, or other). Prioritize roles in that stream.
-- For engineering candidates: weight technical skills, languages, frameworks, system design experience.
-- For data candidates: weight SQL, Python, analytics tools, ML experience, domain knowledge.
-- For product candidates: weight domain expertise, methodologies (roadmapping, user research, A/B testing), and cross-functional leadership.
+- Use the candidate's positioning and differentiators to understand what kind of role is the best fit — don't just match keywords.
+- Prioritize roles that match the candidate's trajectory and what makes them stand out, not just their current skill list.
 - Consider both explicit matches (mentioned skills/tools) and implicit matches (related experience and domain).
 - Return a re-ranked list with match scores and brief reasons.
 
@@ -53,18 +51,38 @@ Company: {company}
 Description: {description}
 Requirements: {requirements}
 
-Analyze fit by comparing the candidate's actual background against what this role requires.
-- Tailor your evaluation to the role type: technical depth for engineering roles, analytical and tooling skills for data roles, domain expertise and methodology for product/design roles.
-- Strengths must reference specific skills, experiences, or tools the candidate actually has that match the role.
-- Gaps must reference specific requirements the role asks for that are absent or thin in the candidate's profile.
-- Do not invent skills the candidate doesn't have, and do not echo back job description language as strengths.
+Evaluate the candidate across exactly these 6 dimensions. For each, provide:
+- score: 0-100 (honest, not inflated)
+- items: 2-4 specific bullet points grounded in the candidate's actual background
+- summary: one concrete sentence
+
+Dimensions:
+1. Skills Match — how well the candidate's technical or domain skills map to explicit job requirements
+2. Experience Match — how well seniority, role history, and project scope align with what the role needs
+3. Culture Fit — signals of alignment with company values, stage (startup/enterprise), or working style
+4. Growth Potential — concrete evidence the candidate can grow into or beyond this role
+5. Red Flags — specific mismatches, gaps, or concerns (use empty items list if none exist)
+6. Action Plan — 2-3 actionable things the candidate should do before applying
+
+Also return the legacy flat fields for backward compatibility.
+- Strengths must reference specific skills or experiences the candidate actually has.
+- Gaps must reference specific requirements absent or thin in the candidate's profile.
+- Do not invent skills or echo back job description language as strengths.
 
 Return ONLY valid JSON with NO markdown or code blocks:
 {{
   "match_score": <number 0-100>,
-  "strengths": ["<specific matching skill or experience>", "<another concrete match>", "<third match if applicable>"],
-  "gaps": ["<missing or thin requirement>", "<second gap if applicable>"],
-  "suggestion": "<one actionable sentence on how to position themselves for this specific role>"
+  "strengths": ["<specific match>", "<another match>"],
+  "gaps": ["<missing requirement>"],
+  "suggestion": "<one actionable sentence>",
+  "blocks": [
+    {{"title": "Skills Match",      "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
+    {{"title": "Experience Match",  "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
+    {{"title": "Culture Fit",       "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
+    {{"title": "Growth Potential",  "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}},
+    {{"title": "Red Flags",         "score": <0-100>, "items": [],                  "summary": "<sentence>"}},
+    {{"title": "Action Plan",       "score": <0-100>, "items": ["<item>", "<item>"], "summary": "<sentence>"}}
+  ]
 }}"""
 
 
@@ -89,8 +107,15 @@ def rerank(query: str, candidates: List[Dict[str, Any]], resume_profile: Dict[st
 
     candidate_context = query
     if resume_profile:
+        positioning = resume_profile.get("positioning", "")
+        differentiators = resume_profile.get("differentiators", [])
+        diff_text = "\n".join(f"- {d}" for d in differentiators[:5]) if differentiators else "N/A"
         import json as _json
-        candidate_context = f"Resume Profile:\n{_json.dumps(resume_profile, indent=2)[:1500]}\n\nSearch intent: {query}"
+        candidate_context = (
+            (f"Positioning: {positioning}\n" if positioning else "")
+            + (f"What makes them stand out:\n{diff_text}\n" if differentiators else "")
+            + f"Resume Profile:\n{_json.dumps(resume_profile, indent=2)[:1200]}\n\nSearch intent: {query}"
+        )
 
     prompt = RERANK_PROMPT.format(
         query=candidate_context,
@@ -171,8 +196,13 @@ def explain(query: str, job: Dict[str, Any], resume_profile: Dict[str, Any] = No
         ]
         education = "; ".join(edu_parts) or "N/A"
         stream = resume_profile.get("stream", "")
+        positioning = resume_profile.get("positioning", "")
+        differentiators = resume_profile.get("differentiators", [])
+        diff_text = "\n".join(f"- {d}" for d in differentiators[:5]) if differentiators else ""
         candidate_context = (
             f"Name: {resume_profile.get('name', 'Candidate')}\n"
+            + (f"Positioning: {positioning}\n" if positioning else "")
+            + (f"What makes them stand out:\n{diff_text}\n" if diff_text else "")
             + (f"Stream: {stream}\n" if stream else "")
             + f"Summary: {resume_profile.get('summary', '')}\n"
             f"Skills: {', '.join(all_skills)}\n"

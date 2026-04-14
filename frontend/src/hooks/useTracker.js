@@ -29,11 +29,8 @@ export function useTracker() {
 
   const remove = useCallback(async (jobId) => {
     await removeTrackedJob(jobId)
-    setData(prev => ({
-      ...prev,
-      jobs: prev.jobs.filter(j => j.job_id !== jobId),
-    }))
-  }, [])
+    await fetch()
+  }, [fetch])
 
   const updateStatus = useCallback(async (jobId, status) => {
     const job = data.jobs.find(j => j.job_id === jobId)

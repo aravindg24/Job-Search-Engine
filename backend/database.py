@@ -132,6 +132,7 @@ def save_watch_preferences(
     keywords: Optional[List[str]] = None,
     locations: Optional[List[str]] = None,
     company_stages: Optional[List[str]] = None,
+    target_companies: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     db = get_db()
     result = db.table("watch_preferences").upsert({
@@ -140,6 +141,7 @@ def save_watch_preferences(
         "keywords": keywords or [],
         "locations": locations or [],
         "company_stages": company_stages or [],
+        "target_companies": target_companies or [],
     }, on_conflict="user_id").execute()
     return result.data[0] if result.data else {}
 
@@ -264,3 +266,48 @@ def get_search_history(user_id: str, limit: int = 5) -> List[str]:
         if len(seen) >= limit:
             break
     return seen
+
+
+# ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
+
+def create_story(
+    user_id: str,
+    situation: str,
+    task: str,
+    action: str,
+    result: str,
+    skills_demonstrated: List[str],
+) -> Dict[str, Any]:
+    db = get_db()
+    row = db.table("stories").insert({
+        "user_id": user_id,
+        "situation": situation,
+        "task": task,
+        "action": action,
+        "result": result,
+        "skills_demonstrated": skills_demonstrated,
+    }).execute()
+    return row.data[0] if row.data else {}
+
+
+def get_stories(user_id: str) -> List[Dict[str, Any]]:
+    db = get_db()
+    return (
+        db.table("stories")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    ).data or []
+
+
+def delete_story(story_id: int, user_id: str) -> bool:
+    db = get_db()
+    result = (
+        db.table("stories")
+        .delete()
+        .eq("id", story_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return bool(result.data)

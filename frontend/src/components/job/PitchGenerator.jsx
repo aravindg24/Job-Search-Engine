@@ -61,6 +61,20 @@ export default function PitchGenerator({ jobId }) {
 
       {result && (
         <div className="space-y-4">
+          {/* F6: low-score warning */}
+          {result.warning && (
+            <div
+              className="rounded-lg px-4 py-3 text-sm"
+              style={{
+                backgroundColor: 'rgba(234,179,8,0.08)',
+                border: '1px solid rgba(234,179,8,0.25)',
+                color: '#ca8a04',
+              }}
+            >
+              {result.warning}
+            </div>
+          )}
+
           {/* The pitch */}
           <div className="border border-border rounded-xl p-4 relative" style={{ backgroundColor: 'var(--surface)' }}>
             <p className="text-primary text-sm leading-relaxed whitespace-pre-wrap">

@@ -7,6 +7,7 @@ export default function WatchSettings() {
   const [keywords, setKeywords] = useState('AI, LLM, search, full-stack')
   const [locations, setLocations] = useState('San Francisco, Remote')
   const [stages, setStages] = useState('Seed, Series A, Series B')
+  const [targetCompanies, setTargetCompanies] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -16,6 +17,7 @@ export default function WatchSettings() {
       setKeywords((prefs.keywords || []).join(', '))
       setLocations((prefs.locations || []).join(', '))
       setStages((prefs.company_stages || []).join(', '))
+      setTargetCompanies((prefs.target_companies || []).join(', '))
     }).catch(() => {})
   }, [])
 
@@ -27,6 +29,7 @@ export default function WatchSettings() {
         keywords: keywords.split(',').map(s => s.trim()).filter(Boolean),
         locations: locations.split(',').map(s => s.trim()).filter(Boolean),
         company_stages: stages.split(',').map(s => s.trim()).filter(Boolean),
+        target_companies: targetCompanies.split(',').map(s => s.trim()).filter(Boolean),
       })
       toast('Watch preferences saved')
     } catch {
@@ -76,6 +79,18 @@ export default function WatchSettings() {
           type="text"
           value={stages}
           onChange={e => setStages(e.target.value)}
+          className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
+        />
+      </div>
+
+      <div>
+        <label className="text-xs text-secondary block mb-1">Target companies (comma-separated)</label>
+        <input
+          type="text"
+          value={targetCompanies}
+          onChange={e => setTargetCompanies(e.target.value)}
+          placeholder="Stripe, Linear, Vercel"
           className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
           style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
         />

@@ -7,9 +7,16 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 logger = logging.getLogger(__name__)
 
+_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # DNS namespace
+
 
 def make_id(prefix: str = "job") -> str:
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+
+def make_deterministic_id(source_url: str) -> str:
+    """Generate a stable UUID from a job's source URL — safe to call repeatedly."""
+    return str(uuid.uuid5(_NAMESPACE, source_url))
 
 
 def clean_text(text: str) -> str:
@@ -58,7 +65,15 @@ def parse_salary(value) -> Tuple[Optional[int], Optional[int]]:
         nums = [int(m) for m in re.findall(r"\d+", text)]
         if not nums:
             return None, None
+        # Filter out numbers too small to be a salary or hourly rate (e.g. "10+ years")
+        nums = [n for n in nums if n >= 15]
+        if not nums:
+            return None, None
         nums = [n * 2080 if n < 500 else n for n in nums]  # hourly → annual
+        # Drop annualised values below a plausible minimum salary
+        nums = [n for n in nums if n >= 15000]
+        if not nums:
+            return None, None
         return nums[0], nums[-1]
     except Exception:
         return None, None

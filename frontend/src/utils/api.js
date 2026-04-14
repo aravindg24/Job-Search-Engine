@@ -83,6 +83,22 @@ export const inviteUser = (email) =>
 export const getSearchHistory = () =>
   api.get('/search/history').then(r => r.data)
 
+// ── JD Extraction (F2) ─────────────────────────────────────────────────────────
+
+export const extractJD = (data) =>
+  api.post('/jd/extract', data).then(r => r.data)
+
+// ── STAR Stories (F4) ──────────────────────────────────────────────────────────
+
+export const getStories = () =>
+  api.get('/stories').then(r => r.data)
+
+export const createStory = (story) =>
+  api.post('/stories', story).then(r => r.data)
+
+export const deleteStory = (id) =>
+  api.delete(`/stories/${id}`).then(r => r.data)
+
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 export const healthCheck = () =>
