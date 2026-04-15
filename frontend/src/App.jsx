@@ -12,6 +12,7 @@ import JobDetailPage from './pages/JobDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import JDAnalyzePage from './pages/JDAnalyzePage'
+import SavedJobsPage from './pages/SavedJobsPage'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import AuthGuard from './components/shared/AuthGuard'
@@ -54,6 +55,7 @@ export default function App() {
                   <Route path="/job/:id" element={<JobDetailPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/saved-jobs" element={<SavedJobsPage />} />
                   <Route path="/analyze" element={<JDAnalyzePage />} />
                 </Routes>
               </main>

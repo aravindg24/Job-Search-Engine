@@ -64,6 +64,9 @@ export default function Header() {
         <NavLink to="/dashboard" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
           Dashboard
         </NavLink>
+        <NavLink to="/saved-jobs" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
+          Saved
+        </NavLink>
         <NavLink to="/profile" className={navCls} style={({ isActive }) => ({ color: isActive ? 'var(--text)' : 'var(--text-3)' })}>
           Profile
         </NavLink>

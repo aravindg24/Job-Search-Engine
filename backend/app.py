@@ -166,6 +166,7 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
         query=enriched_query,
         top_k=req.top_k,
         offset=req.offset,
+        sort_by=req.sort_by,
         filters=active_filters,
         resume_profile=resume_profile,
         clean_query=clean_query,
@@ -443,10 +444,48 @@ def unsave_job_endpoint(job_id: str, user_id: str = Depends(get_current_user)):
 
 @app.get("/api/saved-jobs")
 def get_saved_jobs_endpoint(user_id: str = Depends(get_current_user)):
-    """Get all saved jobs for the user."""
+    """Get all saved jobs for the user with full job details from Qdrant."""
     try:
-        saved = get_saved_jobs(user_id)
-        return {"jobs": saved, "count": len(saved)}
+        saved_records = get_saved_jobs(user_id)
+        if not saved_records:
+            return {"jobs": [], "count": 0}
+
+        # Enrich with full job details from Qdrant
+        from search.vector_store import get_client, _to_uuid
+        client = get_client()
+        enriched = []
+        for record in saved_records:
+            job_id = record.get("job_id", "")
+            try:
+                results = client.retrieve(
+                    collection_name=settings.qdrant_collection,
+                    ids=[_to_uuid(job_id)],
+                    with_payload=True,
+                )
+                if results:
+                    payload = results[0].payload or {}
+                    enriched.append({
+                        "id": job_id,
+                        "title": payload.get("title", ""),
+                        "company": payload.get("company", ""),
+                        "location": payload.get("location", ""),
+                        "remote": payload.get("remote", False),
+                        "description": payload.get("description", ""),
+                        "requirements": payload.get("requirements", []),
+                        "salary_range": payload.get("salary_range"),
+                        "company_stage": payload.get("company_stage"),
+                        "source": payload.get("source", ""),
+                        "source_url": payload.get("source_url"),
+                        "posted_date": payload.get("posted_date"),
+                        "tags": payload.get("tags", []),
+                        "saved_at": record.get("saved_at"),
+                        "job_is_saved": True,
+                    })
+            except Exception:
+                # Fall back to minimal record if Qdrant lookup fails
+                enriched.append({**record, "job_is_saved": True})
+
+        return {"jobs": enriched, "count": len(enriched)}
     except Exception as e:
         logger.error(f"Failed to fetch saved jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch saved jobs.")

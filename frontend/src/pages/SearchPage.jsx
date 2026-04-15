@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSearch } from '../hooks/useSearch'
 import { useResume } from '../hooks/useResume'
 import ResultsGrid from '../components/search/ResultsGrid'
+import Pagination from '../components/search/Pagination'
 import Modal from '../components/shared/Modal'
 import PitchGenerator from '../components/job/PitchGenerator'
 
@@ -22,7 +23,7 @@ const STREAMS = [
 ]
 
 export default function SearchPage() {
-  const { results, loading, error, query, hasSearched, recentQueries, search, reset, offset, total, loadMore } = useSearch()
+  const { results, loading, error, query, hasSearched, recentQueries, search, reset, currentPage, total, totalPages, goToPage, sortBy, changeSortBy } = useSearch()
   const { profile } = useResume()
   const [pitchJob, setPitchJob] = useState(null)
   const [inputValue, setInputValue] = useState('')
@@ -252,12 +253,32 @@ export default function SearchPage() {
         {hasSearched && (
           <>
             {!loading && results.length > 0 && (
-              <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="text-xs font-mono" style={{ color: 'var(--text-4)' }}>
-                  {results.length} of {total} matches for{' '}
+                  {total} matches for{' '}
                   <span style={{ color: 'var(--text-3)' }}>"{query}"</span>
+                  {totalPages > 1 && (
+                    <span style={{ color: 'var(--text-4)' }}> · Page {currentPage} of {totalPages}</span>
+                  )}
                 </span>
                 <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
+
+                {/* Sort dropdown */}
+                <select
+                  value={sortBy}
+                  onChange={e => changeSortBy(e.target.value)}
+                  className="text-xs px-2 py-1 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-3)',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="relevance">Most Relevant</option>
+                  <option value="recent">Most Recent</option>
+                </select>
+
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="text-xs font-medium transition-colors duration-150"
@@ -278,28 +299,13 @@ export default function SearchPage() {
               onPitch={job => setPitchJob(job)}
             />
 
-            {/* Load More button */}
-            {!loading && results.length > 0 && results.length < total && (
-              <div className="flex justify-center mt-8">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)' }}
-                  onMouseEnter={e => {
-                    if (!loading) {
-                      e.currentTarget.style.borderColor = 'var(--accent)'
-                      e.currentTarget.style.backgroundColor = 'var(--surface-2)'
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'var(--border)'
-                    e.currentTarget.style.backgroundColor = 'var(--surface)'
-                  }}
-                >
-                  Load More
-                </button>
-              </div>
+            {/* Page number pagination */}
+            {!loading && totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
             )}
           </>
         )}

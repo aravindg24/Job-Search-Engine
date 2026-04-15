@@ -14,6 +14,7 @@ class SearchRequest(BaseModel):
     query: str
     top_k: int = Field(10, ge=1, le=50)
     offset: int = Field(0, ge=0)
+    sort_by: str = Field("relevance", pattern="^(relevance|recent)$")
     filters: Optional[SearchFilters] = None
 
 
