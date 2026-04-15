@@ -224,21 +224,3 @@ class JDExtractResponse(BaseModel):
     pitch_suggestion: Optional[str] = None
 
 
-# ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
-
-class StoryCreate(BaseModel):
-    situation: str
-    task: str
-    action: str
-    result: str
-    skills_demonstrated: List[str] = []
-
-
-class Story(BaseModel):
-    id: int
-    situation: str
-    task: str
-    action: str
-    result: str
-    skills_demonstrated: List[str]
-    created_at: Optional[str] = None

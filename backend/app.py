@@ -25,7 +25,6 @@ from models import (
     WatchRequest, DigestResponse, DigestJob,
     InviteRequest,
     JDExtractRequest, JDExtractResponse,
-    StoryCreate, Story,
     SaveJobRequest,
 )
 from search.vector_store import create_collection, ensure_collection, count, search as vector_search
@@ -44,7 +43,6 @@ from database import (
     save_search, get_search_history, send_invite,
     save_job, unsave_job, get_saved_jobs, is_job_saved,
     get_db,
-    create_story, get_stories, delete_story,
 )
 from search.reranker import explain as reranker_explain
 from jd_extractor import fetch_and_extract
@@ -323,14 +321,7 @@ def pitch(req: PitchRequest, user_id: str = Depends(get_current_user)):
     except Exception:
         pass
 
-    # F4: inject STAR stories into pitch
-    stories = []
-    try:
-        stories = get_stories(user_id)
-    except Exception:
-        pass
-
-    result = generate_pitch(resume_profile, job, req.pitch_type, stories=stories)
+    result = generate_pitch(resume_profile, job, req.pitch_type, stories=[])
 
     return PitchResponse(
         pitch=result.get("pitch", ""),
@@ -667,33 +658,3 @@ def extract_jd(req: JDExtractRequest, user_id: str = Depends(get_current_user)):
         pitch_suggestion=explain_result.get("suggestion") if explain_result else None,
     )
 
-
-# ── STAR Story Bank (F4) ───────────────────────────────────────────────────────
-
-@app.post("/api/stories", response_model=Story)
-def add_story(req: StoryCreate, user_id: str = Depends(get_current_user)):
-    row = create_story(
-        user_id=user_id,
-        situation=req.situation,
-        task=req.task,
-        action=req.action,
-        result=req.result,
-        skills_demonstrated=req.skills_demonstrated,
-    )
-    if not row:
-        raise HTTPException(status_code=500, detail="Failed to save story.")
-    return Story(**row)
-
-
-@app.get("/api/stories", response_model=list[Story])
-def list_stories(user_id: str = Depends(get_current_user)):
-    rows = get_stories(user_id)
-    return [Story(**r) for r in rows]
-
-
-@app.delete("/api/stories/{story_id}")
-def remove_story(story_id: int, user_id: str = Depends(get_current_user)):
-    deleted = delete_story(story_id, user_id)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Story not found.")
-    return {"message": "Story deleted."}
