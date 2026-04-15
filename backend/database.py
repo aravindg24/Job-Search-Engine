@@ -135,15 +135,31 @@ def save_watch_preferences(
     target_companies: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     db = get_db()
-    result = db.table("watch_preferences").upsert({
+    data: Dict[str, Any] = {
         "user_id": user_id,
         "min_match_score": min_match_score,
         "keywords": keywords or [],
         "locations": locations or [],
         "company_stages": company_stages or [],
         "target_companies": target_companies or [],
-    }, on_conflict="user_id").execute()
-    return result.data[0] if result.data else {}
+    }
+    try:
+        result = db.table("watch_preferences").upsert(data, on_conflict="user_id").execute()
+        return result.data[0] if result.data else {}
+    except Exception as e:
+        # Gracefully handle missing target_companies column (migration not yet run).
+        # Retry without it so other preferences still save.
+        err_str = str(e)
+        if "target_companies" in err_str or "PGRST204" in err_str:
+            logger.warning(
+                "target_companies column missing in watch_preferences table. "
+                "Run the migration: ALTER TABLE watch_preferences "
+                "ADD COLUMN IF NOT EXISTS target_companies JSONB DEFAULT '[]';"
+            )
+            data.pop("target_companies", None)
+            result = db.table("watch_preferences").upsert(data, on_conflict="user_id").execute()
+            return result.data[0] if result.data else {}
+        raise
 
 
 def get_watch_preferences(user_id: str) -> Optional[Dict[str, Any]]:
@@ -299,9 +315,9 @@ def get_search_history(user_id: str, limit: int = 5) -> List[str]:
     db = get_db()
     result = (
         db.table("search_history")
-        .select("query, searched_at")
+        .select("query, created_at")
         .eq("user_id", user_id)
-        .order("searched_at", desc=True)
+        .order("created_at", desc=True)
         .limit(limit * 10)   # fetch extra to ensure we get `limit` unique ones
         .execute()
     )

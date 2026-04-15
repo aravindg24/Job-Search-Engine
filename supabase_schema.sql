@@ -39,11 +39,12 @@ CREATE TRIGGER tracked_jobs_updated_at
 
 CREATE TABLE IF NOT EXISTS watch_preferences (
     id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
     min_match_score REAL DEFAULT 70,
     keywords JSONB DEFAULT '[]',
     locations JSONB DEFAULT '[]',
     company_stages JSONB DEFAULT '[]',
+    target_companies JSONB DEFAULT '[]',
     last_checked_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -111,7 +112,11 @@ CREATE TABLE IF NOT EXISTS ingest_runs (
     duration_seconds REAL
 );
 
--- ── Company Watchlist (F7) ────────────────────────────────────────────────────
+-- ── Migrations (run these if tables were created BEFORE these columns existed) ─
+-- Add unique constraint so upsert on_conflict="user_id" works:
+ALTER TABLE watch_preferences DROP CONSTRAINT IF EXISTS watch_preferences_user_id_key;
+ALTER TABLE watch_preferences ADD CONSTRAINT watch_preferences_user_id_key UNIQUE (user_id);
+-- Add target_companies column (F7 company watchlist):
 ALTER TABLE watch_preferences ADD COLUMN IF NOT EXISTS target_companies JSONB DEFAULT '[]';
 
 -- ── Saved Jobs (Search Pagination + Save Feature) ────────────────────────────
