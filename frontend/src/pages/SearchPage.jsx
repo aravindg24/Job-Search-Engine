@@ -252,10 +252,10 @@ export default function SearchPage() {
         {/* ── Results ── */}
         {hasSearched && (
           <>
-            {!loading && results.length > 0 && (
+            {!loading && (
               <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="text-xs font-mono" style={{ color: 'var(--text-4)' }}>
-                  {total} matches for{' '}
+                  {total} match{total !== 1 ? 'es' : ''} for{' '}
                   <span style={{ color: 'var(--text-3)' }}>"{query}"</span>
                   {totalPages > 1 && (
                     <span style={{ color: 'var(--text-4)' }}> · Page {currentPage} of {totalPages}</span>
@@ -263,21 +263,23 @@ export default function SearchPage() {
                 </span>
                 <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border)' }} />
 
-                {/* Sort dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={e => changeSortBy(e.target.value)}
-                  className="text-xs px-2 py-1 rounded-lg"
-                  style={{
-                    backgroundColor: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-3)',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="relevance">Most Relevant</option>
-                  <option value="recent">Most Recent</option>
-                </select>
+                {/* Sort dropdown — only useful when there are results */}
+                {results.length > 0 && (
+                  <select
+                    value={sortBy}
+                    onChange={e => changeSortBy(e.target.value)}
+                    className="text-xs px-2 py-1 rounded-lg"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-3)',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="relevance">Most Relevant</option>
+                    <option value="recent">Most Recent</option>
+                  </select>
+                )}
 
                 <button
                   onClick={() => navigate('/dashboard')}
