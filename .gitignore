@@ -1,58 +1,34 @@
-# Environment & secrets
-.env
-.env.local
-.env.*.local
-backend/.env
+# Claude Code local settings
+.claude/
+
+# Editor
+.vscode/
+.idea/
 
 # Python
 __pycache__/
 *.py[cod]
 *.pyo
-.venv/
-venv/
-env/
+*.pyd
+.Python
 *.egg-info/
 dist/
 build/
+.env
+.env.*
+!.env.example
+*.log
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-*.so
 
-# Sentence-transformers model cache
-backend/models/
-~/.cache/huggingface/
-~/.cache/torch/
-
-# Scraped data (generated, not source)
-backend/data/scraped_jobs.json
-
-# Node
+# Node / Frontend
 node_modules/
 frontend/dist/
-frontend/.vite/
-
-# Qdrant persistent storage (Docker volume data)
-qdrant_storage/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Claude Code local config (contains personal settings)
-.claude/
-
-# Temp files
-backend/temp_readme.md
-backend/search/gaps.py.bak
-
-# Uploaded resumes (personal data)
-backend/data/resumes/
-*.pdf
