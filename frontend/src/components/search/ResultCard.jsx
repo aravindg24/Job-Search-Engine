@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import MatchBadge from '../shared/MatchBadge'
 import { truncate } from '../../utils/format'
 import { trackJob } from '../../utils/api'
 import { toast } from '../shared/Toast'
@@ -84,7 +83,6 @@ export default function ResultCard({ job, index, query, onPitch }) {
             )}
           </div>
         </div>
-        <MatchBadge score={job.match_score} />
       </div>
 
       {/* Meta row */}

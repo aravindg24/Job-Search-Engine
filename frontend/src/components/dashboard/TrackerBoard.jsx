@@ -1,5 +1,4 @@
 import { timeAgo } from '../../utils/format'
-import MatchBadge from '../shared/MatchBadge'
 
 const COLUMNS = [
   { key: 'saved',        label: 'Saved',        color: '#71717a' },
@@ -25,7 +24,6 @@ function TrackerCard({ job, onStatusChange, onRemove }) {
             {job.company}
           </p>
         </div>
-        <MatchBadge score={job.match_score} />
       </div>
 
       {job.updated_at && (

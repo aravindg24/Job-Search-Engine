@@ -1,6 +1,5 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import MatchBadge from '../components/shared/MatchBadge'
 import MatchBreakdown from '../components/job/MatchBreakdown'
 import PitchGenerator from '../components/job/PitchGenerator'
 import { trackJob, saveJob, unsaveJob } from '../utils/api'
@@ -152,7 +151,6 @@ export default function JobDetailPage() {
               {job.source && <span className="capitalize">{job.source}</span>}
             </div>
           </div>
-          <MatchBadge score={job.match_score} size="lg" />
         </div>
 
         {/* Action buttons in header */}

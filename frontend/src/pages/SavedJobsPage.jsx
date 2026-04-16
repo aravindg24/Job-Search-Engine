@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getSavedJobs, unsaveJob } from '../utils/api'
 import { toast } from '../components/shared/Toast'
 import Pagination from '../components/search/Pagination'
-import MatchBadge from '../components/shared/MatchBadge'
 import { formatDate } from '../utils/format'
 
 const PAGE_SIZE = 10
@@ -120,8 +119,6 @@ export default function SavedJobsPage() {
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text-4)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
             >
-              {job.match_score != null && <MatchBadge score={job.match_score} />}
-
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{job.title}</p>
                 <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-3)' }}>
