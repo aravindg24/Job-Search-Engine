@@ -529,7 +529,20 @@ def set_watch(req: WatchRequest, user_id: str = Depends(get_current_user)):
 @app.get("/api/digest", response_model=DigestResponse)
 def get_digest(user_id: str = Depends(get_current_user)):
     prefs = get_watch_preferences(user_id)
-    min_score = prefs.get("min_match_score", 70) if prefs else 70
+
+    def _has_active_preferences(p: dict | None) -> bool:
+        if not p:
+            return False
+        return bool(
+            p.get("keywords")
+            or p.get("locations")
+            or p.get("company_stages")
+            or p.get("target_companies")
+            or p.get("min_match_score") not in (None, 70)
+        )
+
+    has_active_prefs = _has_active_preferences(prefs)
+    min_score = prefs.get("min_match_score", 70) if has_active_prefs else 0
     last_checked = prefs.get("last_checked_at") if prefs else None
 
     profile_row = get_resume_profile(user_id)
@@ -537,15 +550,15 @@ def get_digest(user_id: str = Depends(get_current_user)):
 
     if resume_profile:
         query_text = build_search_context(resume_profile)
-        if prefs and prefs.get("keywords"):
+        if has_active_prefs and prefs and prefs.get("keywords"):
             query_text += " " + " ".join(prefs["keywords"])
     else:
-        keywords = prefs.get("keywords", []) if prefs else []
+        keywords = prefs.get("keywords", []) if (has_active_prefs and prefs) else []
         query_text = " ".join(keywords) if keywords else "software engineer"
 
     query_vec = embed(query_text)
-    # Fetch 20 candidates for intelligent digest matching (newly indexed vs top-scoring)
-    raw_results = vector_search(query_vec, top_k=20)
+    # Fetch a larger pool so strict preferences can be applied without starving results.
+    raw_results = vector_search(query_vec, top_k=40 if has_active_prefs else 25)
 
     # Use vector similarity scores directly (skip rerank to avoid concurrent
     # LLM + PyTorch memory pressure with the search endpoint).
@@ -574,16 +587,17 @@ def get_digest(user_id: str = Depends(get_current_user)):
         if score < min_score:
             continue
         payload = item.get("payload", {})
-        if prefs:
-            locations = prefs.get("locations", [])
-            stages = prefs.get("company_stages", [])
-            job_loc = payload.get("location", "")
-            job_stage = payload.get("company_stage", "")
-            if locations and not any(loc.lower() in job_loc.lower() for loc in locations):
-                if not payload.get("remote", False):
-                    continue
-            if stages and job_stage and job_stage not in stages:
-                continue
+        locations = prefs.get("locations", []) if (has_active_prefs and prefs) else []
+        stages = prefs.get("company_stages", []) if (has_active_prefs and prefs) else []
+        job_loc = payload.get("location", "")
+        job_stage = payload.get("company_stage", "")
+
+        strict_pref_match = True
+        if locations and not any(loc.lower() in job_loc.lower() for loc in locations):
+            if not payload.get("remote", False):
+                strict_pref_match = False
+        if stages and job_stage and job_stage not in stages:
+            strict_pref_match = False
 
         # F7: boost score +5 for target company matches
         match_reason = item.get("match_reason", "")
@@ -591,6 +605,9 @@ def get_digest(user_id: str = Depends(get_current_user)):
         if target_companies and any(tc in job_company for tc in target_companies):
             score = min(score + 5, 100)
             match_reason = f"Target company match. {match_reason}".strip()
+
+        if has_active_prefs and not strict_pref_match:
+            match_reason = f"Expanded beyond strict preferences. {match_reason}".strip()
 
         job_id = item.get("id", "")
         job_is_saved = is_job_saved(user_id, job_id)
@@ -615,16 +632,20 @@ def get_digest(user_id: str = Depends(get_current_user)):
             source=payload.get("source", ""),
             job_is_saved=job_is_saved,
         )
-        jobs_with_metadata.append((job, is_newly_indexed))
+        jobs_with_metadata.append((job, is_newly_indexed, strict_pref_match))
 
-    # Sort: newly indexed first, then by score descending
+    # Sort: strict preference matches first (when prefs exist), then newly indexed, then score.
     jobs_with_metadata.sort(
-        key=lambda x: (not x[1], -x[0].match_score)  # newly_indexed=True sorts first, then by score
+        key=lambda x: (
+            (0 if x[2] else 1) if has_active_prefs else 0,
+            not x[1],
+            -x[0].match_score,
+        )
     )
 
     # Count newly indexed jobs and build final list
-    digest_jobs = [job for job, _ in jobs_with_metadata]
-    newly_indexed_count = sum(1 for _, is_new in jobs_with_metadata if is_new)
+    digest_jobs = [job for job, _, _ in jobs_with_metadata]
+    newly_indexed_count = sum(1 for _, is_new, _ in jobs_with_metadata if is_new)
 
     try:
         update_watch_last_checked(user_id)
