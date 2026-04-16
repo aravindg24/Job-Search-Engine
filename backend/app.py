@@ -579,13 +579,12 @@ def get_digest(user_id: str = Depends(get_current_user)):
         except Exception:
             pass
 
-    # Build list with metadata: (job, is_newly_indexed)
+    # Build lists with metadata: (job, is_newly_indexed, strict_pref_match)
     jobs_with_metadata = []
+    fallback_jobs_with_metadata = []
 
     for item in raw_results:
         score = item.get("match_score", 0) or 0
-        if score < min_score:
-            continue
         payload = item.get("payload", {})
         locations = prefs.get("locations", []) if (has_active_prefs and prefs) else []
         stages = prefs.get("company_stages", []) if (has_active_prefs and prefs) else []
@@ -606,7 +605,8 @@ def get_digest(user_id: str = Depends(get_current_user)):
             score = min(score + 5, 100)
             match_reason = f"Target company match. {match_reason}".strip()
 
-        if has_active_prefs and not strict_pref_match:
+        is_below_min_score = score < min_score
+        if has_active_prefs and (not strict_pref_match or is_below_min_score):
             match_reason = f"Expanded beyond strict preferences. {match_reason}".strip()
 
         job_id = item.get("id", "")
@@ -632,7 +632,11 @@ def get_digest(user_id: str = Depends(get_current_user)):
             source=payload.get("source", ""),
             job_is_saved=job_is_saved,
         )
-        jobs_with_metadata.append((job, is_newly_indexed, strict_pref_match))
+
+        if is_below_min_score:
+            fallback_jobs_with_metadata.append((job, is_newly_indexed, strict_pref_match))
+        else:
+            jobs_with_metadata.append((job, is_newly_indexed, strict_pref_match))
 
     # Sort: strict preference matches first (when prefs exist), then newly indexed, then score.
     jobs_with_metadata.sort(
@@ -642,6 +646,29 @@ def get_digest(user_id: str = Depends(get_current_user)):
             -x[0].match_score,
         )
     )
+
+    # If preferences are too strict and we have too few jobs, backfill from
+    # broader relevant candidates so dashboard never appears empty.
+    if has_active_prefs and len(jobs_with_metadata) < 10:
+        fallback_jobs_with_metadata.sort(
+            key=lambda x: (
+                (0 if x[2] else 1),
+                not x[1],
+                -x[0].match_score,
+            )
+        )
+        existing_ids = {job.id for job, _, _ in jobs_with_metadata}
+        for fallback_item in fallback_jobs_with_metadata:
+            job, _, _ = fallback_item
+            if job.id in existing_ids:
+                continue
+            if job.match_score < 30:
+                # Skip very weak matches when backfilling.
+                continue
+            jobs_with_metadata.append(fallback_item)
+            existing_ids.add(job.id)
+            if len(jobs_with_metadata) >= 10:
+                break
 
     # Count newly indexed jobs and build final list
     digest_jobs = [job for job, _, _ in jobs_with_metadata]
