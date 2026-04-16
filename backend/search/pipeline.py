@@ -95,6 +95,18 @@ def _blended_score(match_score: float, posted_date_str: Optional[str]) -> float:
     return round((0.7 * relevance + 0.3 * recency) * 100, 2)
 
 
+def _posted_datetime(posted_date_str: Optional[str]) -> Optional[datetime]:
+    if not posted_date_str:
+        return None
+    try:
+        posted = datetime.fromisoformat(str(posted_date_str))
+        if posted.tzinfo is None:
+            posted = posted.replace(tzinfo=timezone.utc)
+        return posted
+    except Exception:
+        return None
+
+
 def run_search(
     query: str,
     top_k: int = 10,
@@ -103,6 +115,7 @@ def run_search(
     filters: Optional[SearchFilters] = None,
     resume_profile: Optional[Dict[str, Any]] = None,
     clean_query: Optional[str] = None,
+    force_recent: bool = False,
 ) -> List[JobResult]:
     """Full search pipeline: embed → search → (location post-filter) → rerank → return."""
     # Step 1: Embed the semantic role query.
@@ -111,15 +124,14 @@ def run_search(
 
     # Step 2: Vector search — fetch enough for offset + top_k after filtering.
     location_filter = (filters.location or "").strip() if filters else ""
-    fetch_k = (offset + top_k) * (4 if location_filter else 2)
+    fetch_multiplier = 6 if force_recent and not location_filter else 4 if location_filter else 2
+    fetch_k = (offset + top_k) * fetch_multiplier
 
     filter_dict = None
     if filters:
         filter_dict = {}
         if filters.remote is not None:
             filter_dict["remote"] = filters.remote
-        if filters.stream:
-            filter_dict["stream"] = filters.stream
 
     candidates = search(query_vector, top_k=fetch_k, filters=filter_dict)
 
@@ -141,8 +153,18 @@ def run_search(
     # Step 4: LLM re-rank (pass resume profile for richer scoring)
     reranked = rerank(query, candidates, resume_profile=resume_profile)
 
-    # Step 5: Apply blended scoring if sort_by == "recent"
-    if sort_by == "recent":
+    # Step 5: Apply recent ordering.
+    if force_recent:
+        for item in reranked:
+            item["posted_datetime"] = _posted_datetime(item["payload"].get("posted_date"))
+        reranked.sort(
+            key=lambda x: (
+                x.get("posted_datetime") or datetime.min.replace(tzinfo=timezone.utc),
+                x.get("match_score", 0) or 0,
+            ),
+            reverse=True,
+        )
+    elif sort_by == "recent":
         for item in reranked:
             item["blended_score"] = _blended_score(
                 item.get("match_score", 0),

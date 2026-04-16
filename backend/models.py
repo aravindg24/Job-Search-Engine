@@ -7,7 +7,6 @@ from typing import Optional, List, Any, Dict
 class SearchFilters(BaseModel):
     remote: Optional[bool] = None
     location: Optional[str] = None
-    stream: Optional[str] = None  # engineering | data | product | other
 
 
 class SearchRequest(BaseModel):

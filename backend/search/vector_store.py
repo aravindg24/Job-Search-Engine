@@ -45,7 +45,6 @@ _INDEX_SPECS = [
     ("company",       PayloadSchemaType.KEYWORD),
     ("location",      PayloadSchemaType.KEYWORD),
     ("remote",        PayloadSchemaType.KEYWORD),
-    ("stream",        PayloadSchemaType.KEYWORD),
     ("source",        PayloadSchemaType.KEYWORD),
     ("company_stage", PayloadSchemaType.KEYWORD),
     ("salary_min",    PayloadSchemaType.FLOAT),
@@ -143,8 +142,6 @@ def search(
         conditions = []
         if filters.get("remote") is not None:
             conditions.append(FieldCondition(key="remote", match=MatchValue(value=filters["remote"])))
-        if filters.get("stream"):
-            conditions.append(FieldCondition(key="stream", match=MatchValue(value=filters["stream"])))
         if conditions:
             qdrant_filter = Filter(must=conditions)
 
