@@ -21,8 +21,8 @@ api.interceptors.request.use(async (config) => {
 
 // ── Search ─────────────────────────────────────────────────────────────────────
 
-export const searchJobs = ({ query, top_k = 10, offset = 0, filters = null }) =>
-  api.post('/search', { query, top_k, offset, filters }).then(r => r.data)
+export const searchJobs = ({ query, top_k = 10, offset = 0, sort_by = 'relevance', filters = null }) =>
+  api.post('/search', { query, top_k, offset, sort_by, filters }).then(r => r.data)
 
 export const explainMatch = ({ query, job_id }) =>
   api.post('/explain', { query, job_id }).then(r => r.data)

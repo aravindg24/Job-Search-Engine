@@ -150,11 +150,9 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     if intent.get("remote") is not None and base_filters.remote is None:
         base_filters = base_filters.model_copy(update={"remote": intent["remote"]})
     active_filters = base_filters if (base_filters.remote is not None or base_filters.location) else req.filters
-    force_recent = not bool(base_filters.location)
-    effective_sort_by = "recent" if force_recent else req.sort_by
 
     logger.info(
-        f"Search intent — clean_query='{clean_query}' location='{intent.get('location')}' remote={intent.get('remote')} force_recent={force_recent}"
+        f"Search intent — clean_query='{clean_query}' location='{intent.get('location')}' remote={intent.get('remote')} sort_by={req.sort_by}"
     )
 
     # ── Enrich query with resume profile context ───────────────────────────────
@@ -170,11 +168,10 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
         query=enriched_query,
         top_k=req.top_k,
         offset=req.offset,
-        sort_by=effective_sort_by,
+        sort_by=req.sort_by,
         filters=active_filters,
         resume_profile=resume_profile,
         clean_query=clean_query,
-        force_recent=force_recent,
     )
 
     # Apply pagination to all results

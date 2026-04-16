@@ -74,27 +74,6 @@ def _location_matches(job_location: str, query_location: str) -> bool:
     return False
 
 
-def _blended_score(match_score: float, posted_date_str: Optional[str]) -> float:
-    """
-    Blended score = 70% relevance + 30% recency.
-    recency_score is 1.0 for today, decays to 0.0 over 365 days.
-    """
-    relevance = (match_score or 0) / 100.0
-
-    recency = 0.0
-    if posted_date_str:
-        try:
-            posted = datetime.fromisoformat(str(posted_date_str))
-            if posted.tzinfo is None:
-                posted = posted.replace(tzinfo=timezone.utc)
-            days_old = max(0, (datetime.now(timezone.utc) - posted).days)
-            recency = max(0.0, 1.0 - days_old / 365.0)
-        except Exception:
-            pass
-
-    return round((0.7 * relevance + 0.3 * recency) * 100, 2)
-
-
 def _posted_datetime(posted_date_str: Optional[str]) -> Optional[datetime]:
     if not posted_date_str:
         return None
@@ -115,7 +94,6 @@ def run_search(
     filters: Optional[SearchFilters] = None,
     resume_profile: Optional[Dict[str, Any]] = None,
     clean_query: Optional[str] = None,
-    force_recent: bool = False,
 ) -> List[JobResult]:
     """Full search pipeline: embed → search → (location post-filter) → rerank → return."""
     # Step 1: Embed the semantic role query.
@@ -124,7 +102,7 @@ def run_search(
 
     # Step 2: Vector search — fetch enough for offset + top_k after filtering.
     location_filter = (filters.location or "").strip() if filters else ""
-    fetch_multiplier = 6 if force_recent and not location_filter else 4 if location_filter else 2
+    fetch_multiplier = 5 if sort_by == "recent" else 4 if location_filter else 3
     fetch_k = (offset + top_k) * fetch_multiplier
 
     filter_dict = None
@@ -153,8 +131,9 @@ def run_search(
     # Step 4: LLM re-rank (pass resume profile for richer scoring)
     reranked = rerank(query, candidates, resume_profile=resume_profile)
 
-    # Step 5: Apply recent ordering.
-    if force_recent:
+    # Step 5: Apply explicit sort behavior selected by the user.
+    # relevance: keep reranker order; recent: strict newest-first ordering.
+    if sort_by == "recent":
         for item in reranked:
             item["posted_datetime"] = _posted_datetime(item["payload"].get("posted_date"))
         reranked.sort(
@@ -164,13 +143,6 @@ def run_search(
             ),
             reverse=True,
         )
-    elif sort_by == "recent":
-        for item in reranked:
-            item["blended_score"] = _blended_score(
-                item.get("match_score", 0),
-                item["payload"].get("posted_date"),
-            )
-        reranked.sort(key=lambda x: x.get("blended_score", 0), reverse=True)
 
     # Step 6: Format all reranked results (pagination handled in app.py)
     results = []
