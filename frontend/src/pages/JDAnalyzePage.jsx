@@ -15,8 +15,7 @@ export default function JDAnalyzePage() {
     <div className="max-w-2xl mx-auto px-6 py-10 space-y-6 animate-fade-in">
       <div>
         <h1
-          className="text-2xl font-semibold mb-1"
-          className="font-serif"
+          className="font-serif text-2xl font-semibold mb-1"
         >
           Analyze a Job Posting
         </h1>

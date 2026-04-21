@@ -123,8 +123,7 @@ export default function JobDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1
-              className="text-2xl leading-snug font-semibold mb-1"
-              className="font-serif"
+              className="font-serif text-2xl leading-snug font-semibold mb-1"
             >
               {job.title}
             </h1>

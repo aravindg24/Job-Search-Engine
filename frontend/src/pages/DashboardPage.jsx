@@ -71,10 +71,7 @@ export default function DashboardPage() {
 
       {/* Page title */}
       <div className="mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          className="font-serif"
-        >
+        <h1 className="font-serif text-2xl font-semibold">
           Dashboard
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--text-4)' }}>

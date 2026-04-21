@@ -303,8 +303,7 @@ export default function FeaturesPage() {
           <span className="w-1.5 h-1.5 rounded-full bg-current" />
           Six features, one workflow
         </div>
-        <h1 className="text-5xl md:text-6xl leading-tight mb-5"
-          className="font-serif text-[var(--text)]">
+        <h1 className="font-serif text-5xl md:text-6xl leading-tight mb-5 text-[var(--text)]">
           Everything your<br />
           <span style={{ color: 'var(--accent)' }}>job search needs</span>
         </h1>
@@ -335,7 +334,7 @@ export default function FeaturesPage() {
                     {f.number}
                   </span>
                 </div>
-                <h2 className="text-2xl md:text-3xl mb-2" className="font-serif text-[var(--text)]">
+                <h2 className="font-serif text-2xl md:text-3xl mb-2 text-[var(--text)]">
                   {f.title}
                 </h2>
                 <p className="text-sm font-medium mb-4" style={{ color: f.color }}>{f.tagline}</p>
@@ -365,7 +364,7 @@ export default function FeaturesPage() {
       <section className="px-6 md:px-16 py-24 text-center">
         <div className="max-w-xl mx-auto p-10 rounded-2xl"
           style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <h2 className="text-3xl md:text-4xl mb-4" className="font-serif text-[var(--text)]">
+          <h2 className="font-serif text-3xl md:text-4xl mb-4 text-[var(--text)]">
             All six features,<br />one free account.
           </h2>
           <p className="text-sm mb-8" style={{ color: 'var(--text-3)' }}>

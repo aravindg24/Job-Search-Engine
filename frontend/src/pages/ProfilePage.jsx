@@ -86,10 +86,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <h1
-        className="text-2xl font-semibold"
-        className="font-serif"
-      >
+      <h1 className="font-serif text-2xl font-semibold">
         Your Profile
       </h1>
 

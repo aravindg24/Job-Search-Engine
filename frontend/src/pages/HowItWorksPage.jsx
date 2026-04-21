@@ -192,8 +192,7 @@ export default function HowItWorksPage() {
           <span className="w-1.5 h-1.5 rounded-full bg-current" />
           Five steps · Under two minutes to first results
         </div>
-        <h1 className="text-5xl md:text-6xl leading-tight mb-5"
-          className="font-serif text-[var(--text)]">
+        <h1 className="font-serif text-5xl md:text-6xl leading-tight mb-5 text-[var(--text)]">
           Five steps from<br />
           <span style={{ color: 'var(--accent)' }}>upload to offer</span>
         </h1>
@@ -232,8 +231,7 @@ export default function HowItWorksPage() {
                     )}
                   </div>
 
-                  <h2 className="text-2xl md:text-3xl mb-3"
-                    className="font-serif text-[var(--text)]">
+                  <h2 className="font-serif text-2xl md:text-3xl mb-3 text-[var(--text)]">
                     {step.title}
                   </h2>
                   <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-3)' }}>
@@ -256,8 +254,7 @@ export default function HowItWorksPage() {
 
       {/* ── FAQ strip ─────────────────────────────────────── */}
       <section className="px-6 md:px-16 py-16 max-w-5xl mx-auto">
-        <h2 className="text-2xl md:text-3xl mb-8 text-center"
-          className="font-serif text-[var(--text)]">
+        <h2 className="font-serif text-2xl md:text-3xl mb-8 text-center text-[var(--text)]">
           Common questions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -280,8 +277,7 @@ export default function HowItWorksPage() {
       <section className="px-6 md:px-16 py-24 text-center">
         <div className="max-w-xl mx-auto p-10 rounded-2xl"
           style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <h2 className="text-3xl md:text-4xl mb-4"
-            className="font-serif text-[var(--text)]">
+          <h2 className="font-serif text-3xl md:text-4xl mb-4 text-[var(--text)]">
             Ready to try it?
           </h2>
           <p className="text-sm mb-8" style={{ color: 'var(--text-3)' }}>
