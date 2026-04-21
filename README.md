@@ -66,10 +66,7 @@ Jobs are scraped hourly and indexed into Qdrant. Two-stage deduplication (URL ha
 |---|---|
 | **SimplifyJobs** (GitHub) | New-grad positions (7-day filter) + internships (30-day filter), with direct apply URLs |
 | **Remotive** | Remote-first tech roles |
-| **Arbeitnow** | International tech jobs |
 | **HN Who's Hiring** | Monthly Hacker News hiring threads |
-| **Jobicy** | Remote tech jobs via public API |
-| **RemoteOK** | Remote tech jobs via RSS feed |
 | **Greenhouse** | 59 companies via public Boards API (no auth) |
 | **Lever** | 53 companies via public Postings API (no auth) |
 | **Ashby** | 60 companies via public Posting API (no auth) |
@@ -161,7 +158,7 @@ Open `http://localhost:5173` → sign up → go to **Profile** → upload your r
 python scripts/refresh_jobs.py
 ```
 
-Pulls from all configured sources (SimplifyJobs, Remotive, Arbeitnow, HN Who's Hiring, Jobicy, RemoteOK, Greenhouse, Lever, Ashby), deduplicates, and re-indexes into Qdrant.
+Pulls from all configured sources (SimplifyJobs, Remotive, HN Who's Hiring, Greenhouse, Lever, Ashby), deduplicates, and re-indexes into Qdrant.
 
 ### Docker (full stack)
 
@@ -237,10 +234,7 @@ direct/
 │   │   ├── base.py             # Shared helpers (clean_text, fetch_with_retry, etc.)
 │   │   ├── simplify_github.py  # SimplifyJobs GitHub README (7-day new-grad / 30-day intern)
 │   │   ├── hackernews.py       # HN Who's Hiring scraper
-│   │   ├── arbeitnow.py        # Arbeitnow API
 │   │   ├── remotive.py         # Remotive API
-│   │   ├── jobicy.py           # Jobicy remote-jobs API
-│   │   ├── remoteok.py         # RemoteOK RSS feed
 │   │   ├── greenhouse.py       # Greenhouse Boards API (company_boards.json)
 │   │   ├── lever.py            # Lever Postings API (company_boards.json)
 │   │   └── ashby.py            # Ashby Posting API (company_boards.json)

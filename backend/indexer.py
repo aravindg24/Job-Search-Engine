@@ -175,11 +175,8 @@ def load_scraped_jobs() -> Tuple[List[dict], Dict[str, int]]:
         # (label, import_path, function_name, kwargs)
         ("SimplifyJobs new-grad", "scraper.simplify_github", "scrape", {"max_age_days": 7}),
         ("SimplifyJobs internships", "scraper.simplify_github", "scrape_internships", {"max_age_days": 30}),
-        ("Arbeitnow", "scraper.arbeitnow", "scrape", {}),
         ("Remotive", "scraper.remotive", "scrape", {}),
         ("HackerNews", "scraper.hackernews", "scrape", {}),
-        ("Jobicy", "scraper.jobicy", "scrape", {}),
-        ("RemoteOK", "scraper.remoteok", "scrape", {}),
         ("Greenhouse", "scraper.greenhouse", "scrape", {}),
         ("Ashby", "scraper.ashby", "scrape", {}),
         ("Lever", "scraper.lever", "scrape", {}),
