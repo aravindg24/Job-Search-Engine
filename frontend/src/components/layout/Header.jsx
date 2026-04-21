@@ -56,7 +56,7 @@ function MenuIcon({ open }) {
   )
 }
 
-export default function Header() {
+export default function Header({ onOpenPalette }) {
   const { dark, toggle } = useTheme()
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
@@ -95,6 +95,17 @@ export default function Header() {
             Direct
           </span>
         </NavLink>
+
+        {/* Cmd+K search trigger */}
+        {onOpenPalette && (
+          <button
+            onClick={onOpenPalette}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg btn-secondary text-xs font-mono"
+          >
+            <span className="text-[var(--text-4)]">Search jobs...</span>
+            <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-3)] border border-[var(--border-2)] text-[var(--text-4)]">⌘K</kbd>
+          </button>
+        )}
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-7">

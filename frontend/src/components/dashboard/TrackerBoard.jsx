@@ -52,10 +52,7 @@ function TrackerCard({ job, onStatusChange, onRemove }) {
         <button
           onClick={() => onRemove(job.job_id)}
           title="Remove"
-          className="text-xs px-1.5 py-1 rounded-lg transition-colors"
-          style={{ color: 'var(--text-4)' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+          className="text-xs px-1.5 py-1 rounded-lg transition-colors text-[var(--text-4)] hover:text-red-500"
         >
           ✕
         </button>

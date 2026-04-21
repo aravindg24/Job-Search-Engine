@@ -97,10 +97,7 @@ export default function ProfilePage() {
           profile && (
             <button
               onClick={() => document.getElementById('resume-reupload')?.click()}
-              className="text-xs transition-colors duration-150"
-              style={{ color: 'var(--text-3)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+              className="text-xs link-accent"
             >
               Re-upload
             </button>

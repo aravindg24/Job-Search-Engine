@@ -32,7 +32,7 @@ export default function ResultCard({ job, index, query, onPitch }) {
 
   return (
     <div
-      className="card p-5 cursor-pointer animate-slide-up"
+      className={`card p-5 cursor-pointer animate-slide-up ${(job.match_score ?? job.score ?? 0) >= 85 ? 'card-high-match' : ''}`}
       style={{
         animationDelay: `${index * 55}ms`,
         animationFillMode: 'both',

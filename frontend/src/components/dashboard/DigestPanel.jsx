@@ -78,10 +78,7 @@ export default function DigestPanel() {
             <div
               key={job.id}
               onClick={() => navigate(`/job/${job.id}`, { state: { job } })}
-              className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer transition-all group"
-              style={{ backgroundColor: 'var(--surface)' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-4)'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+              className="flex items-center gap-3 p-3 rounded-lg cursor-pointer group card-row"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-primary text-sm font-medium truncate">{job.title}</p>

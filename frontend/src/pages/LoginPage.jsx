@@ -126,10 +126,8 @@ export default function LoginPage() {
           </p>
           <button
             onClick={() => { setMagicSent(false); setUseMagicLink(false) }}
-            className="text-sm px-6 py-2.5 rounded-xl font-semibold transition-all duration-150"
+            className="text-sm px-6 py-2.5 rounded-xl font-semibold transition-all duration-150 hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
             Back to Sign In
           </button>
@@ -172,10 +170,7 @@ export default function LoginPage() {
             <button
               onClick={handleResend}
               disabled={resending}
-              className="text-sm mb-4 transition-colors disabled:opacity-50"
-              style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+              className="text-sm mb-4 link-muted disabled:opacity-50 bg-transparent border-none cursor-pointer"
             >
               {resending ? 'Sending…' : "Didn't receive it? Resend email"}
             </button>
@@ -184,10 +179,8 @@ export default function LoginPage() {
           <br />
           <button
             onClick={() => { setConfirmed(false); setMode('signin') }}
-            className="text-sm px-6 py-2.5 rounded-xl font-semibold transition-all duration-150"
+            className="text-sm px-6 py-2.5 rounded-xl font-semibold transition-all duration-150 hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
             Go to Sign In
           </button>
@@ -206,10 +199,7 @@ export default function LoginPage() {
         <div className="mb-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm transition-colors duration-150"
-            style={{ color: 'var(--text-4)' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--text-4)] hover:text-[var(--text)] transition-colors duration-150"
           >
             ← Back to home
           </Link>
@@ -371,10 +361,7 @@ export default function LoginPage() {
           {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
           <button
             onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
-            className="underline transition-colors"
-            style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+            className="underline link-muted bg-transparent border-none cursor-pointer"
           >
             {mode === 'signin' ? 'Sign up free' : 'Sign in'}
           </button>

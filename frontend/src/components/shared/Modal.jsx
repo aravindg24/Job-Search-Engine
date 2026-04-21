@@ -35,16 +35,7 @@ export default function Modal({ open, onClose, title, children, width = 'max-w-2
           <h2 className="text-base font-semibold" style={{ color: 'var(--text)' }}>{title}</h2>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150"
-            style={{ color: 'var(--text-3)', backgroundColor: 'transparent' }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = 'var(--bg-3)'
-              e.currentTarget.style.color = 'var(--text)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--text-3)'
-            }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 btn-secondary border-transparent"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

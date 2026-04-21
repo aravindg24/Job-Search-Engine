@@ -45,10 +45,7 @@ export default function SearchBar({ onSearch, loading, resumeProfile }) {
             </span>
             <button
               onClick={() => navigate('/profile')}
-              className="ml-auto text-xs transition-colors duration-150"
-              style={{ color: 'var(--text-3)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+              className="ml-auto text-xs link-accent"
             >
               Edit profile →
             </button>
@@ -112,8 +109,8 @@ export default function SearchBar({ onSearch, loading, resumeProfile }) {
             backgroundColor: 'var(--accent)',
             color: 'var(--bg)',
           }}
-          onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.backgroundColor = '#e8940a' }}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--accent)'}
+          onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '0.88' }}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           {loading ? (
             <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -135,22 +132,7 @@ export default function SearchBar({ onSearch, loading, resumeProfile }) {
           <button
             key={ex}
             onClick={() => { setQuery(ex); ref.current?.focus() }}
-            className="text-xs px-3 py-1.5 rounded-full transition-all duration-150"
-            style={{
-              backgroundColor: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-3)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'var(--accent)'
-              e.currentTarget.style.color = 'var(--text)'
-              e.currentTarget.style.backgroundColor = 'var(--accent-light)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'var(--border)'
-              e.currentTarget.style.color = 'var(--text-3)'
-              e.currentTarget.style.backgroundColor = 'var(--surface-2)'
-            }}
+            className="text-xs px-3 py-1.5 rounded-full chip"
           >
             {ex}
           </button>

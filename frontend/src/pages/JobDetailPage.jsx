@@ -107,10 +107,7 @@ export default function JobDetailPage() {
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="text-sm mb-6 flex items-center gap-1.5 transition-colors duration-150"
-        style={{ color: 'var(--text-3)' }}
-        onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+        className="text-sm mb-6 flex items-center gap-1.5 link-muted"
       >
         ← Back to results
       </button>
@@ -161,8 +158,8 @@ export default function JobDetailPage() {
               rel="noopener noreferrer"
               className="text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150 inline-flex items-center gap-1.5"
               style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.88' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
             >
               Apply ↗
             </a>
@@ -208,10 +205,7 @@ export default function JobDetailPage() {
             action={
               <button
                 onClick={() => setShowDesc(!showDesc)}
-                className="text-xs transition-colors duration-150"
-                style={{ color: 'var(--text-4)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+                className="text-xs transition-colors duration-150 text-[var(--text-4)] hover:text-[var(--accent)]"
               >
                 {showDesc ? 'Collapse ▲' : 'Expand ▼'}
               </button>
@@ -254,7 +248,7 @@ function TrackButton({ children, onClick, disabled, active, activeStyle }) {
       className="text-sm px-4 py-2 rounded-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       style={active ? activeStyle : base}
       onMouseEnter={e => { if (!disabled && !active) e.currentTarget.style.color = 'var(--text)' }}
-      onMouseLeave={e => { if (!active) Object.assign(e.currentTarget.style, base) }}
+      onMouseLeave={e => { if (!disabled && !active) Object.assign(e.currentTarget.style, base) }}
     >
       {children}
     </button>

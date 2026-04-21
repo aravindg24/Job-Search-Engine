@@ -45,16 +45,10 @@ export default function PublicNav() {
           <button
             key={link.path}
             onClick={() => navigate(link.path)}
-            className="text-sm transition-colors duration-150"
-            style={{
-              color: location.pathname === link.path ? 'var(--text)' : 'var(--text-3)',
-              fontWeight: location.pathname === link.path ? 600 : 400,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={e => { if (location.pathname !== link.path) e.currentTarget.style.color = 'var(--text)' }}
-            onMouseLeave={e => { if (location.pathname !== link.path) e.currentTarget.style.color = 'var(--text-3)' }}
+            className={`text-sm bg-transparent border-none cursor-pointer transition-colors duration-150
+              ${location.pathname === link.path
+                ? 'text-[var(--text)] font-semibold'
+                : 'link-muted font-normal'}`}
           >
             {link.label}
           </button>
@@ -67,10 +61,7 @@ export default function PublicNav() {
         <button
           onClick={toggle}
           aria-label="Toggle theme"
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150"
-          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-3)'; e.currentTarget.style.color = 'var(--text)' }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--surface)'; e.currentTarget.style.color = 'var(--text-3)' }}
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 btn-secondary"
         >
           {dark ? (
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -89,19 +80,14 @@ export default function PublicNav() {
 
         <button
           onClick={() => navigate('/login')}
-          className="text-sm px-4 py-1.5 rounded-lg transition-all duration-150"
-          style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+          className="text-sm px-4 py-1.5 rounded-lg bg-transparent border-none cursor-pointer link-muted"
         >
           Sign in
         </button>
         <button
           onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-          className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-150"
+          className="text-sm px-4 py-2 rounded-lg font-semibold transition-all duration-150 hover:opacity-90"
           style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           Get the app
         </button>

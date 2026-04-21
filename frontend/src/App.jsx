@@ -17,6 +17,8 @@ import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import AuthGuard from './components/shared/AuthGuard'
 import { useToast, ToastContainer } from './components/shared/Toast'
+import CommandPalette from './components/shared/CommandPalette'
+import { useCommandPalette } from './hooks/useCommandPalette'
 
 function ThemeInit() {
   useEffect(() => {
@@ -31,6 +33,7 @@ function ThemeInit() {
 
 export default function App() {
   const { toasts } = useToast()
+  const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette()
 
   return (
     <BrowserRouter>
@@ -47,7 +50,7 @@ export default function App() {
           {/* Protected */}
           <Route path="/*" element={
             <AuthGuard>
-              <Header />
+              <Header onOpenPalette={() => setPaletteOpen(true)} />
               <main className="flex-1">
                 <Routes>
                   <Route path="/home" element={<HomePage />} />
@@ -62,6 +65,8 @@ export default function App() {
             </AuthGuard>
           } />
         </Routes>
+
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
         <ToastContainer toasts={toasts} />
         <Analytics />
         <SpeedInsights />

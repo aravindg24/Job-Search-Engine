@@ -17,20 +17,12 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
     return pages
   }
 
-  const btnBase = {
-    minWidth: '32px',
-    height: '32px',
-    borderRadius: '8px',
-    fontSize: '13px',
-    fontWeight: '500',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    border: '1px solid var(--border)',
-    transition: 'all 0.15s',
-    padding: '0 8px',
-  }
+  const navCls = (disabled) =>
+    `min-w-[32px] h-8 px-2 rounded-lg text-[13px] font-medium flex items-center justify-center transition-all duration-150 border
+    ${disabled
+      ? 'opacity-40 cursor-not-allowed border-[var(--border)] text-[var(--text-4)] bg-[var(--surface)]'
+      : 'border-[var(--border)] text-[var(--text-3)] bg-[var(--surface)] hover:border-[var(--accent)] hover:text-[var(--text)]'
+    }`
 
   return (
     <div className="flex items-center justify-center gap-1.5 mt-8">
@@ -38,15 +30,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        style={{
-          ...btnBase,
-          backgroundColor: 'var(--surface)',
-          color: currentPage === 1 ? 'var(--text-4)' : 'var(--text-3)',
-          cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-          opacity: currentPage === 1 ? 0.4 : 1,
-        }}
-        onMouseEnter={e => { if (currentPage !== 1) e.currentTarget.style.borderColor = 'var(--accent)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
+        className={navCls(currentPage === 1)}
       >
         ←
       </button>
@@ -54,22 +38,18 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       {/* Page numbers */}
       {getPageNumbers().map((page, i) =>
         page === '...' ? (
-          <span key={`ellipsis-${i}`} style={{ color: 'var(--text-4)', padding: '0 4px', fontSize: '13px' }}>
+          <span key={`ellipsis-${i}`} className="text-[13px] px-1 text-[var(--text-4)]">
             …
           </span>
         ) : (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            style={{
-              ...btnBase,
-              backgroundColor: currentPage === page ? 'var(--accent)' : 'var(--surface)',
-              color: currentPage === page ? 'var(--bg)' : 'var(--text-3)',
-              borderColor: currentPage === page ? 'var(--accent)' : 'var(--border)',
-              fontWeight: currentPage === page ? '700' : '500',
-            }}
-            onMouseEnter={e => { if (currentPage !== page) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text)' } }}
-            onMouseLeave={e => { if (currentPage !== page) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' } }}
+            className={`min-w-[32px] h-8 px-2 rounded-lg text-[13px] flex items-center justify-center transition-all duration-150 border
+              ${currentPage === page
+                ? 'bg-[var(--accent)] text-[var(--bg)] border-[var(--accent)] font-bold'
+                : 'bg-[var(--surface)] text-[var(--text-3)] border-[var(--border)] font-medium hover:border-[var(--accent)] hover:text-[var(--text)]'
+              }`}
           >
             {page}
           </button>
@@ -80,15 +60,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        style={{
-          ...btnBase,
-          backgroundColor: 'var(--surface)',
-          color: currentPage === totalPages ? 'var(--text-4)' : 'var(--text-3)',
-          cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-          opacity: currentPage === totalPages ? 0.4 : 1,
-        }}
-        onMouseEnter={e => { if (currentPage !== totalPages) e.currentTarget.style.borderColor = 'var(--accent)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
+        className={navCls(currentPage === totalPages)}
       >
         →
       </button>

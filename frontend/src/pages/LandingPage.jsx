@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import PublicNav from '../components/layout/PublicNav'
+import CompanyTicker from '../components/landing/CompanyTicker'
 
 const stats = [
   {
@@ -112,7 +113,11 @@ export default function LandingPage() {
       <PublicNav />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <section className="px-6 md:px-16 pt-20 pb-16 max-w-7xl mx-auto">
+      <section
+        className="relative overflow-hidden"
+        style={{ background: 'linear-gradient(90deg, var(--bg) 50%, var(--surface) 50%)' }}
+      >
+        <div className="px-6 md:px-16 pt-20 pb-16 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left — copy */}
           <div>
@@ -130,17 +135,12 @@ export default function LandingPage() {
             </p>
             <div className="flex items-center gap-3">
               <button onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-                className="text-sm px-6 py-3 rounded-xl font-semibold transition-all duration-150"
-                style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                className="text-sm px-6 py-3 rounded-xl font-semibold transition-all duration-150 hover:opacity-90"
+                style={{ backgroundColor: 'var(--accent)', color: '#000' }}>
                 Start searching free →
               </button>
               <button onClick={() => navigate('/login')}
-                className="text-sm px-6 py-3 rounded-xl transition-all duration-150"
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
+                className="text-sm px-6 py-3 rounded-xl btn-secondary">
                 Sign in
               </button>
             </div>
@@ -203,7 +203,10 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
+
+      <CompanyTicker />
 
       {/* ── Stats bar ───────────────────────────────────────────── */}
       <section className="px-6 md:px-16 py-10 max-w-7xl mx-auto">
@@ -365,10 +368,8 @@ export default function LandingPage() {
 
           {/* Table rows */}
           {sampleJobs.map((job, i) => (
-            <div key={job.rank} className="grid grid-cols-12 px-6 py-4 items-center transition-colors duration-100"
-              style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none', cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-2)'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+            <div key={job.rank} className="grid grid-cols-12 px-6 py-4 items-center transition-colors duration-100 cursor-pointer hover:bg-[var(--bg-2)]"
+              style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
               <div className="col-span-1 text-sm font-mono" style={{ color: 'var(--text-4)' }}>{job.rank}</div>
               <div className="col-span-4">
                 <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{job.title}</div>
@@ -415,15 +416,13 @@ export default function LandingPage() {
           {coreFeatures.map(f => (
             <div key={f.label} className="flex flex-col items-center gap-4" style={{ width: 110 }}>
               <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center transition-transform duration-200"
+                className="w-20 h-20 rounded-2xl flex items-center justify-center transition-transform duration-200 hover:-translate-y-1"
                 style={{
                   backgroundColor: f.bg,
                   border: `1px solid ${f.color}30`,
                   color: f.color,
                   boxShadow: `0 4px 20px ${f.color}18`,
                 }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 {f.icon}
               </div>
@@ -514,10 +513,8 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-            className="relative z-10 text-sm px-8 py-3 rounded-xl font-semibold transition-all duration-150"
-            style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            className="relative z-10 text-sm px-8 py-3 rounded-xl font-semibold transition-all duration-150 hover:opacity-90"
+            style={{ backgroundColor: 'var(--accent)', color: '#000' }}>
             Get the app →
           </button>
         </div>
@@ -554,10 +551,7 @@ export default function LandingPage() {
               <ul className="space-y-2.5">
                 {col.links.map(link => (
                   <li key={link}>
-                    <button className="text-sm transition-colors"
-                      style={{ color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
+                    <button className="text-sm link-muted bg-transparent border-none cursor-pointer">
                       {link}
                     </button>
                   </li>

@@ -114,10 +114,7 @@ export default function SavedJobsPage() {
             <div
               key={job.id}
               onClick={() => navigate(`/job/${job.id}`, { state: { job } })}
-              className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer transition-all group"
-              style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text-4)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
+              className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer group card-row"
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{job.title}</p>
@@ -144,10 +141,7 @@ export default function SavedJobsPage() {
               <button
                 onClick={e => handleUnsave(e, job.id)}
                 disabled={removing === job.id}
-                className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-40"
-                style={{ border: '1px solid var(--border)', color: 'var(--text-3)', backgroundColor: 'transparent' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-3)' }}
+                className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-40 btn-ghost-danger"
                 title="Remove from saved"
               >
                 {removing === job.id ? '…' : 'Remove'}

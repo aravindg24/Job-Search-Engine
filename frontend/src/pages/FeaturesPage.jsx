@@ -372,10 +372,8 @@ export default function FeaturesPage() {
           </p>
           <button
             onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-            className="text-sm px-8 py-3 rounded-xl font-semibold transition-all duration-150"
+            className="text-sm px-8 py-3 rounded-xl font-semibold transition-all duration-150 hover:opacity-90"
             style={{ backgroundColor: 'var(--accent)', color: '#000' }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
             Get started free →
           </button>

@@ -65,6 +65,14 @@ export default function DashboardPage() {
 
   const totalTracked  = tracker.jobs.length
   const activeCount   = (tracker.stats?.saved || 0) + (tracker.stats?.applied || 0) + (tracker.stats?.interviewing || 0)
+  const topMatch      = tracker.jobs.reduce((best, j) => {
+    const s = j.match_score ?? j.score ?? 0
+    return s > (best?.match_score ?? best?.score ?? 0) ? j : best
+  }, null)
+  const appliedThisWeek = tracker.jobs.filter(j => {
+    if (j.status !== 'applied' || !j.updated_at) return false
+    return (Date.now() - new Date(j.updated_at)) < 7 * 24 * 60 * 60 * 1000
+  }).length
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in">
@@ -77,6 +85,23 @@ export default function DashboardPage() {
         <p className="text-sm mt-1" style={{ color: 'var(--text-4)' }}>
           Your job search at a glance
         </p>
+      </div>
+
+      {/* ── Stat strip ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {[
+          { label: 'Tracked', value: totalTracked },
+          { label: 'Active', value: activeCount },
+          { label: 'Top match', value: topMatch ? `${topMatch.match_score ?? topMatch.score ?? 0}%` : '—', accent: true },
+          { label: 'Applied this week', value: appliedThisWeek },
+        ].map(({ label, value, accent }) => (
+          <div key={label} className="rounded-xl px-4 py-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="text-xl font-bold font-mono" style={{ color: accent ? 'var(--accent)' : 'var(--text)' }}>
+              {value}
+            </div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>{label}</div>
+          </div>
+        ))}
       </div>
 
       {/* ── Top row: New Matches (left) + Skill Gaps (right) ── */}

@@ -84,39 +84,44 @@ export default function SearchPage() {
             </span>
           )}
 
-          {/* Single-line search input */}
+          {/* Terminal-style search input */}
           <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
-            <div className="relative flex-1">
+            <div
+              className="relative flex-1 flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all duration-150 group"
+              style={{
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+              }}
+              onFocus={() => {}}
+            >
+              {/* Terminal prompt */}
+              <span className="text-[var(--accent)] font-mono text-base select-none leading-none shrink-0">›</span>
               <input
                 type="text"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
-                placeholder="Describe the role you're looking for..."
-                className="w-full rounded-xl px-4 py-2.5 pr-10 text-sm transition-all duration-150"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text)',
-                  outline: 'none',
-                }}
+                placeholder="describe the role you're looking for..."
+                className="flex-1 bg-transparent font-mono text-sm text-[var(--text)] placeholder:text-[var(--text-4)] outline-none caret-[var(--accent)] min-w-0"
+                style={{ letterSpacing: '-0.01em' }}
                 onFocus={e => {
-                  e.target.style.borderColor = 'var(--accent)'
-                  e.target.style.boxShadow = '0 0 0 3px var(--accent-light)'
+                  e.target.closest('div').style.borderColor = 'var(--accent)'
+                  e.target.closest('div').style.boxShadow = '0 0 0 3px var(--accent-light)'
                 }}
                 onBlur={e => {
-                  e.target.style.borderColor = 'var(--border)'
-                  e.target.style.boxShadow = 'none'
+                  e.target.closest('div').style.borderColor = 'var(--border)'
+                  e.target.closest('div').style.boxShadow = 'none'
                 }}
               />
-              {/* Clear button */}
+              {/* Blinking cursor when idle */}
+              {!inputValue && !loading && (
+                <span className="terminal-cursor w-0.5 h-3.5 bg-[var(--accent)] rounded-sm shrink-0 opacity-60" />
+              )}
+              {/* Clear */}
               {inputValue && (
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--text-4)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-3)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-4)'}
+                  className="shrink-0 text-[var(--text-4)] hover:text-[var(--text-3)] transition-colors"
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -127,20 +132,15 @@ export default function SearchPage() {
             <button
               type="submit"
               disabled={!inputValue.trim() || loading}
-              className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-              style={{ backgroundColor: 'var(--accent)', color: 'var(--bg)' }}
+              className="flex items-center gap-1.5 text-xs font-semibold font-mono px-4 py-2.5 rounded-xl transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              style={{ backgroundColor: 'var(--accent)', color: '#000' }}
             >
               {loading ? (
                 <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              )}
-              Search
+              ) : '⟶'}
             </button>
           </form>
         </div>
@@ -165,19 +165,7 @@ export default function SearchPage() {
                     <button
                       key={i}
                       onClick={() => handleRecent(q)}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-150 group"
-                      style={{
-                        backgroundColor: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'rgba(232,255,71,0.3)'
-                        e.currentTarget.style.backgroundColor = 'var(--surface-2)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'var(--border)'
-                        e.currentTarget.style.backgroundColor = 'var(--surface)'
-                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left group query-item"
                     >
                       <span style={{ color: 'var(--text-4)' }}>
                         <ClockIcon />
@@ -239,10 +227,7 @@ export default function SearchPage() {
 
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="text-xs font-medium transition-colors duration-150"
-                  style={{ color: 'var(--text-3)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
+                  className="text-xs font-medium link-accent"
                 >
                   Gap Analysis ↗
                 </button>

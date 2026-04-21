@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { explainMatch } from '../../utils/api'
-import MatchBadge from '../shared/MatchBadge'
+import ScoreArc from '../shared/ScoreArc'
 
 function AnimatedBar({ value, color }) {
   const [width, setWidth] = useState(0)
@@ -52,12 +52,12 @@ export default function MatchBreakdown({ job, query }) {
   return (
     <div className="space-y-5">
       {/* Score row */}
-      <div className="flex items-center gap-3">
-        <MatchBadge score={explain.match_score} size="lg" />
-        <AnimatedBar value={explain.match_score} color={scoreColor(explain.match_score)} />
-        <span className="text-xs font-mono text-[var(--text-4)] shrink-0">
-          {explain.match_score}%
-        </span>
+      <div className="flex items-center gap-4 mb-2">
+        <ScoreArc score={explain.match_score} size={64} />
+        <div className="flex-1">
+          <AnimatedBar value={explain.match_score} color={scoreColor(explain.match_score)} />
+          <p className="text-xs text-[var(--text-4)] mt-1">Match score</p>
+        </div>
       </div>
 
       {/* Strengths */}
