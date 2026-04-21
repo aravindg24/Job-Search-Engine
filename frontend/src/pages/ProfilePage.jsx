@@ -3,7 +3,6 @@ import { useResume } from '../hooks/useResume'
 import ResumeUpload from '../components/profile/ResumeUpload'
 import ParsedProfile from '../components/profile/ParsedProfile'
 import WatchSettings from '../components/profile/WatchSettings'
-import StoryBank from '../components/profile/StoryBank'
 import { toast } from '../components/shared/Toast'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { inviteUser } from '../utils/api'
@@ -89,7 +88,7 @@ export default function ProfilePage() {
 
       <h1
         className="text-2xl font-semibold"
-        style={{ color: 'var(--text)', fontFamily: '"Instrument Serif", Georgia, serif' }}
+        className="font-serif"
       >
         Your Profile
       </h1>
@@ -132,11 +131,6 @@ export default function ProfilePage() {
       {/* Watch preferences */}
       <Section title="Watch Preferences">
         <WatchSettings />
-      </Section>
-
-      {/* Story Bank */}
-      <Section title="Story Bank">
-        <StoryBank />
       </Section>
 
       {/* Invite */}
