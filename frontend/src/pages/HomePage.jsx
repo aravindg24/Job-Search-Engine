@@ -25,12 +25,8 @@ export default function HomePage() {
             AI Job Search
           </p>
           <h1
-            className="text-4xl leading-tight mb-3"
-            style={{
-              fontFamily: '"Instrument Serif", Georgia, serif',
-              color: 'var(--text)',
-              letterSpacing: '-0.01em',
-            }}
+            className="text-4xl leading-tight mb-3 font-serif text-[var(--text)]"
+            style={{ letterSpacing: '-0.01em' }}
           >
             Describe yourself.<br />
             <span style={{ color: 'var(--accent)' }}>Find your next role.</span>

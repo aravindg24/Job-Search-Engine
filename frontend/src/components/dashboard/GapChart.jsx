@@ -4,14 +4,30 @@ const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="border border-border rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: "var(--surface)" }}>
-      <p className="text-primary font-medium">{d.skill}</p>
-      <p className="text-secondary">{d.demanded_by} jobs · {d.percentage}%</p>
+    <div
+      className="border border-[var(--border)] rounded-lg px-3 py-2 text-xs"
+      style={{ backgroundColor: 'var(--surface)' }}
+    >
+      <p className="font-medium text-[var(--text)]">{d.skill}</p>
+      <p className="text-[var(--text-3)]">{d.demanded_by} jobs · {d.percentage}%</p>
       {d.status && <p className="text-green-400 mt-0.5">✓ You have this</p>}
       {d.priority && <p className="text-yellow-400 mt-0.5">Priority: {d.priority}</p>}
     </div>
   )
 }
+
+const CustomYAxisTick = ({ x, y, payload }) => (
+  <text
+    x={x}
+    y={y}
+    dy={4}
+    textAnchor="end"
+    fill="var(--text-3)"
+    fontSize={11}
+  >
+    {payload.value.length > 20 ? payload.value.slice(0, 20) + '…' : payload.value}
+  </text>
+)
 
 export default function GapChart({ gaps }) {
   if (!gaps) return null
@@ -23,11 +39,20 @@ export default function GapChart({ gaps }) {
     <div className="space-y-6">
       {strongData.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-wider text-secondary mb-3">You're strong in</p>
+          <p className="text-xs uppercase tracking-wider text-[var(--text-4)] mb-3">
+            You're strong in
+          </p>
           <ResponsiveContainer width="100%" height={strongData.length * 36 + 20}>
             <BarChart data={strongData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
               <XAxis type="number" domain={[0, 100]} hide />
-              <YAxis type="category" dataKey="skill" width={100} tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis
+                type="category"
+                dataKey="skill"
+                width={110}
+                tick={<CustomYAxisTick />}
+                axisLine={false}
+                tickLine={false}
+              />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
               <Bar dataKey="percentage" radius={[0, 4, 4, 0]} maxBarSize={16}>
                 {strongData.map((_, i) => <Cell key={i} fill="#22C55E" fillOpacity={0.7} />)}
@@ -39,15 +64,28 @@ export default function GapChart({ gaps }) {
 
       {missingData.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-wider text-secondary mb-3">Consider learning</p>
+          <p className="text-xs uppercase tracking-wider text-[var(--text-4)] mb-3">
+            Consider learning
+          </p>
           <ResponsiveContainer width="100%" height={missingData.length * 36 + 20}>
             <BarChart data={missingData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
               <XAxis type="number" domain={[0, 100]} hide />
-              <YAxis type="category" dataKey="skill" width={100} tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis
+                type="category"
+                dataKey="skill"
+                width={110}
+                tick={<CustomYAxisTick />}
+                axisLine={false}
+                tickLine={false}
+              />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
               <Bar dataKey="percentage" radius={[0, 4, 4, 0]} maxBarSize={16}>
                 {missingData.map((entry, i) => (
-                  <Cell key={i} fill={entry.priority === 'high' ? '#F59E0B' : '#71717A'} fillOpacity={0.7} />
+                  <Cell
+                    key={i}
+                    fill={entry.priority === 'high' ? '#F59E0B' : '#71717A'}
+                    fillOpacity={0.7}
+                  />
                 ))}
               </Bar>
             </BarChart>

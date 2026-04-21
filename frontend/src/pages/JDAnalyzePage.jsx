@@ -16,7 +16,7 @@ export default function JDAnalyzePage() {
       <div>
         <h1
           className="text-2xl font-semibold mb-1"
-          style={{ color: 'var(--text)', fontFamily: '"Instrument Serif", Georgia, serif' }}
+          className="font-serif"
         >
           Analyze a Job Posting
         </h1>

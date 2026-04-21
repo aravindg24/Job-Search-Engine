@@ -120,7 +120,7 @@ export default function LandingPage() {
               Secure, simple, seamless
             </p>
             <h1 className="text-5xl md:text-6xl leading-tight mb-6"
-              style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+              className="font-serif text-[var(--text)]">
               <span style={{ color: 'var(--accent)' }}>Fast-track</span><br />
               your job search
             </h1>
@@ -233,7 +233,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>
               Smart search
             </p>
-            <h2 className="text-3xl md:text-4xl mb-5" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+            <h2 className="text-3xl md:text-4xl mb-5" className="font-serif text-[var(--text)]">
               Search in plain English,<br />not keywords
             </h2>
             <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
@@ -319,7 +319,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>
               Portfolio overview
             </p>
-            <h2 className="text-3xl md:text-4xl mb-5" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+            <h2 className="text-3xl md:text-4xl mb-5" className="font-serif text-[var(--text)]">
               Know your fit<br />before you apply
             </h2>
             <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
@@ -347,7 +347,7 @@ export default function LandingPage() {
       <section className="px-6 md:px-16 py-16 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>Live index</p>
-          <h2 className="text-3xl md:text-4xl" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+          <h2 className="text-3xl md:text-4xl" className="font-serif text-[var(--text)]">
             Top matches
           </h2>
         </div>
@@ -406,7 +406,7 @@ export default function LandingPage() {
         <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>
           Everything you need
         </p>
-        <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+        <h2 className="text-3xl md:text-4xl mb-4" className="font-serif text-[var(--text)]">
           Multi-feature support
         </h2>
         <p className="text-sm mb-14 max-w-md mx-auto" style={{ color: 'var(--text-3)' }}>
@@ -438,7 +438,7 @@ export default function LandingPage() {
       <section className="px-6 md:px-16 py-16 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>Why Direct</p>
-          <h2 className="text-3xl md:text-4xl" style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+          <h2 className="text-3xl md:text-4xl" className="font-serif text-[var(--text)]">
             Your career, our priority
           </h2>
         </div>
@@ -507,7 +507,7 @@ export default function LandingPage() {
             Simplify your job search with Direct
           </p>
           <h2 className="text-4xl md:text-5xl mb-3 relative z-10"
-            style={{ fontFamily: 'Instrument Serif, serif', color: 'var(--text)' }}>
+            className="font-serif text-[var(--text)]">
             <span style={{ color: 'var(--accent)' }}>Kickstart</span> your job<br />search today
           </h2>
           <p className="text-sm mb-8 relative z-10" style={{ color: 'var(--text-3)' }}>

@@ -135,4 +135,53 @@
     outline: none;
     box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
   }
+
+  /* ── Button base classes ──────────────────────────────────── */
+  .btn-secondary {
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--bg-3);
+    border-color: rgba(252, 170, 45, 0.25);
+    color: var(--text);
+  }
+
+  /* ── Input focus ──────────────────────────────────────────── */
+  .input-base {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+  }
+  .input-base:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  /* ── Hover-only link ──────────────────────────────────────── */
+  .link-muted {
+    color: var(--text-3);
+    transition: color 0.15s;
+  }
+  .link-muted:hover { color: var(--text); }
+
+  .link-accent {
+    color: var(--text-3);
+    transition: color 0.15s;
+  }
+  .link-accent:hover { color: var(--accent); }
+}
+
+/* ── Global focus-visible ring ────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
 }
