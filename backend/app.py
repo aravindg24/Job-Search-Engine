@@ -145,11 +145,51 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     # Merge parsed intent into filters (explicit request filters take priority)
     from models import SearchFilters
     base_filters = req.filters or SearchFilters()
+    search_focus_terms = [clean_query]
+
     if intent.get("location") and not base_filters.location:
         base_filters = base_filters.model_copy(update={"location": intent["location"]})
     if intent.get("remote") is not None and base_filters.remote is None:
         base_filters = base_filters.model_copy(update={"remote": intent["remote"]})
-    active_filters = base_filters if (base_filters.remote is not None or base_filters.location) else req.filters
+    if intent.get("experience_level") and not base_filters.experience_level:
+        base_filters = base_filters.model_copy(update={"experience_level": intent["experience_level"]})
+    if intent.get("skills") and not base_filters.skills:
+        base_filters = base_filters.model_copy(update={"skills": intent["skills"]})
+    if intent.get("company_stages") and not base_filters.company_stages:
+        base_filters = base_filters.model_copy(update={"company_stages": intent["company_stages"]})
+    if intent.get("role_type") and not base_filters.role_type:
+        base_filters = base_filters.model_copy(update={"role_type": intent["role_type"]})
+    if intent.get("salary_min") is not None and base_filters.salary_min is None:
+        base_filters = base_filters.model_copy(update={"salary_min": intent["salary_min"]})
+    if intent.get("salary_max") is not None and base_filters.salary_max is None:
+        base_filters = base_filters.model_copy(update={"salary_max": intent["salary_max"]})
+    if intent.get("excludes") and not base_filters.excludes:
+        base_filters = base_filters.model_copy(update={"excludes": intent["excludes"]})
+
+    if intent.get("skills"):
+        search_focus_terms.extend(intent["skills"])
+    if intent.get("experience_level"):
+        search_focus_terms.append(intent["experience_level"])
+    if intent.get("role_type"):
+        search_focus_terms.append(intent["role_type"])
+
+    active_filters = (
+        base_filters
+        if any([
+            base_filters.remote is not None,
+            bool(base_filters.location),
+            bool(base_filters.experience_level),
+            bool(base_filters.skills),
+            bool(base_filters.company_stages),
+            bool(base_filters.role_type),
+            base_filters.salary_min is not None,
+            base_filters.salary_max is not None,
+            bool(base_filters.excludes),
+        ])
+        else req.filters
+    )
+
+    search_focus = " ".join(dict.fromkeys(term for term in search_focus_terms if term and term.strip()))
 
     logger.info(
         f"Search intent — clean_query='{clean_query}' location='{intent.get('location')}' remote={intent.get('remote')} sort_by={req.sort_by}"
@@ -162,7 +202,9 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
     if profile_row:
         resume_profile = profile_row.get("parsed_profile", {})
         context = build_search_context(resume_profile)
-        enriched_query = f"{context}\n\nLooking for: {clean_query}"
+        enriched_query = f"{context}\n\nLooking for: {search_focus}"
+    else:
+        enriched_query = search_focus
 
     all_results = run_search(
         query=enriched_query,
@@ -172,6 +214,7 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
         filters=active_filters,
         resume_profile=resume_profile,
         clean_query=clean_query,
+        search_intent=intent,
     )
 
     # Apply pagination to all results

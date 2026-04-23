@@ -86,6 +86,78 @@ def _posted_datetime(posted_date_str: Optional[str]) -> Optional[datetime]:
         return None
 
 
+def _normalize_terms(values: Optional[List[str]]) -> List[str]:
+    if not values:
+        return []
+    return [value.strip().lower() for value in values if isinstance(value, str) and value.strip()]
+
+
+def _job_text_blob(payload: Dict[str, Any]) -> str:
+    requirements = payload.get("requirements") or []
+    tags = payload.get("tags") or []
+    parts = [
+        payload.get("title", ""),
+        payload.get("company", ""),
+        payload.get("location", ""),
+        payload.get("description", ""),
+        " ".join(requirements) if isinstance(requirements, list) else str(requirements),
+        " ".join(tags) if isinstance(tags, list) else str(tags),
+        payload.get("company_stage", ""),
+        payload.get("role_type", ""),
+    ]
+    return " ".join(str(part) for part in parts if part).lower()
+
+
+def _salary_bounds_match(payload: Dict[str, Any], requested_min: Optional[int], requested_max: Optional[int]) -> bool:
+    if requested_min is None and requested_max is None:
+        return True
+
+    job_min = payload.get("salary_min")
+    job_max = payload.get("salary_max")
+    if job_min is None and job_max is None:
+        return True
+
+    try:
+        job_min_value = int(job_min) if job_min is not None else None
+    except Exception:
+        job_min_value = None
+    try:
+        job_max_value = int(job_max) if job_max is not None else None
+    except Exception:
+        job_max_value = None
+
+    if requested_min is not None and job_max_value is not None and job_max_value < requested_min:
+        return False
+    if requested_max is not None and job_min_value is not None and job_min_value > requested_max:
+        return False
+    return True
+
+
+def _metadata_matches_stage(payload: Dict[str, Any], stages: Optional[List[str]]) -> bool:
+    if not stages:
+        return True
+    job_stage = (payload.get("company_stage") or "").strip().lower()
+    if not job_stage:
+        return True
+    return any(stage in job_stage for stage in _normalize_terms(stages))
+
+
+def _metadata_matches_role_type(payload: Dict[str, Any], role_type: Optional[str]) -> bool:
+    if not role_type:
+        return True
+    job_role_type = (payload.get("role_type") or "").strip().lower()
+    if not job_role_type:
+        return True
+    return role_type.strip().lower() in job_role_type
+
+
+def _matches_excludes(payload: Dict[str, Any], excludes: Optional[List[str]]) -> bool:
+    if not excludes:
+        return True
+    blob = _job_text_blob(payload)
+    return not any(term in blob for term in _normalize_terms(excludes))
+
+
 def run_search(
     query: str,
     top_k: int = 10,
@@ -94,6 +166,7 @@ def run_search(
     filters: Optional[SearchFilters] = None,
     resume_profile: Optional[Dict[str, Any]] = None,
     clean_query: Optional[str] = None,
+    search_intent: Optional[Dict[str, Any]] = None,
 ) -> List[JobResult]:
     """Full search pipeline: embed → search → (location post-filter) → rerank → return."""
     # Step 1: Embed the semantic role query.
@@ -110,6 +183,8 @@ def run_search(
         filter_dict = {}
         if filters.remote is not None:
             filter_dict["remote"] = filters.remote
+        if filters.company_stages and len(filters.company_stages) == 1:
+            filter_dict["company_stage"] = filters.company_stages[0]
 
     candidates = search(query_vector, top_k=fetch_k, filters=filter_dict)
 
@@ -125,11 +200,20 @@ def run_search(
             or _location_matches(c["payload"].get("location") or "", location_filter)
         ]
 
+    if candidates and filters:
+        candidates = [
+            c for c in candidates
+            if _metadata_matches_stage(c["payload"], filters.company_stages)
+            and _metadata_matches_role_type(c["payload"], filters.role_type)
+            and _salary_bounds_match(c["payload"], filters.salary_min, filters.salary_max)
+            and _matches_excludes(c["payload"], filters.excludes)
+        ]
+
     if not candidates:
         return []
 
     # Step 4: LLM re-rank (pass resume profile for richer scoring)
-    reranked = rerank(query, candidates, resume_profile=resume_profile)
+    reranked = rerank(query, candidates, resume_profile=resume_profile, search_intent=search_intent)
 
     # Step 5: Apply explicit sort behavior selected by the user.
     # relevance: keep reranker order; recent: strict newest-first ordering.

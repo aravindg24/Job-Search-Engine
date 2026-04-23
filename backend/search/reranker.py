@@ -73,7 +73,12 @@ Return ONLY valid JSON with NO markdown or code blocks:
 }}"""
 
 
-def rerank(query: str, candidates: List[Dict[str, Any]], resume_profile: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+def rerank(
+    query: str,
+    candidates: List[Dict[str, Any]],
+    resume_profile: Dict[str, Any] = None,
+    search_intent: Dict[str, Any] = None,
+) -> List[Dict[str, Any]]:
     """
     Re-rank candidates using Cerebras. Falls back to original ordering on failure.
     candidates: list of {id, score, payload}
@@ -103,6 +108,28 @@ def rerank(query: str, candidates: List[Dict[str, Any]], resume_profile: Dict[st
             + (f"What makes them stand out:\n{diff_text}\n" if differentiators else "")
             + f"Resume Profile:\n{_json.dumps(resume_profile, indent=2)[:1200]}\n\nSearch intent: {query}"
         )
+
+    if search_intent:
+        intent_lines = []
+        for label, key in [
+            ("Clean query", "clean_query"),
+            ("Experience level", "experience_level"),
+            ("Skills", "skills"),
+            ("Company stages", "company_stages"),
+            ("Role type", "role_type"),
+            ("Salary min", "salary_min"),
+            ("Salary max", "salary_max"),
+            ("Excludes", "excludes"),
+        ]:
+            value = search_intent.get(key)
+            if value:
+                intent_lines.append(f"- {label}: {value}")
+        if intent_lines:
+            candidate_context = (
+                candidate_context
+                + "\n\nStructured search intent:\n"
+                + "\n".join(intent_lines)
+            )
 
     prompt = RERANK_PROMPT.format(
         query=candidate_context,

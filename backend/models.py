@@ -7,6 +7,13 @@ from typing import Optional, List, Any, Dict
 class SearchFilters(BaseModel):
     remote: Optional[bool] = None
     location: Optional[str] = None
+    experience_level: Optional[str] = None
+    skills: Optional[List[str]] = None
+    company_stages: Optional[List[str]] = None
+    role_type: Optional[str] = None
+    salary_min: Optional[int] = None
+    salary_max: Optional[int] = None
+    excludes: Optional[List[str]] = None
 
 
 class SearchRequest(BaseModel):

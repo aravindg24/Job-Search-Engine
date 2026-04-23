@@ -142,6 +142,8 @@ def search(
         conditions = []
         if filters.get("remote") is not None:
             conditions.append(FieldCondition(key="remote", match=MatchValue(value=filters["remote"])))
+        if filters.get("company_stage"):
+            conditions.append(FieldCondition(key="company_stage", match=MatchValue(value=filters["company_stage"])))
         if conditions:
             qdrant_filter = Filter(must=conditions)
 
