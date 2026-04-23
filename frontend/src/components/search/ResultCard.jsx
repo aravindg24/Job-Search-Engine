@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { truncate } from '../../utils/format'
 import { trackJob } from '../../utils/api'
 import { toast } from '../shared/Toast'
-import MatchBadge from '../shared/MatchBadge'
 
 export default function ResultCard({ job, index, query, onPitch }) {
   const navigate = useNavigate()
@@ -32,7 +31,7 @@ export default function ResultCard({ job, index, query, onPitch }) {
 
   return (
     <div
-      className={`card p-5 cursor-pointer animate-slide-up ${(job.match_score ?? job.score ?? 0) >= 85 ? 'card-high-match' : ''}`}
+      className="card p-5 cursor-pointer animate-slide-up"
       style={{
         animationDelay: `${index * 55}ms`,
         animationFillMode: 'both',
@@ -40,7 +39,7 @@ export default function ResultCard({ job, index, query, onPitch }) {
       onClick={() => navigate(`/job/${job.id}`, { state: { job, query } })}
     >
       {/* Header row — title + badge */}
-      <div className="flex items-start justify-between gap-3 mb-2">
+      <div className="flex items-start gap-3 mb-2">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold leading-snug truncate text-[var(--text)] group-hover:text-[var(--accent)] transition-colors duration-150">
             {job.title}
@@ -59,7 +58,6 @@ export default function ResultCard({ job, index, query, onPitch }) {
             )}
           </div>
         </div>
-        <MatchBadge score={job.match_score ?? job.score} className="flex-shrink-0 mt-0.5" />
       </div>
 
       {/* Meta row */}

@@ -223,8 +223,7 @@ def search(req: SearchRequest, user_id: str = Depends(get_current_user)):
 
     search_record = None
     try:
-        top_score = paginated_results[0].match_score if paginated_results else None
-        search_record = save_search(req.query, total_available, top_score, user_id)
+        search_record = save_search(req.query, total_available, None, user_id)
     except Exception as e:
         logger.warning(f"Could not save search history: {e}")
 

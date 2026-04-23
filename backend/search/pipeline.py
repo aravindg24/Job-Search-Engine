@@ -246,7 +246,6 @@ def run_search(
             source_url=payload.get("source_url"),
             posted_date=payload.get("posted_date"),
             tags=payload.get("tags", []),
-            match_score=item.get("match_score"),
             match_reason=item.get("match_reason"),
         ))
 
