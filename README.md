@@ -13,9 +13,9 @@
 | Feature | Description |
 |---|---|
 | **Resume-aware search** | Upload your PDF once; every search is automatically enriched with your profile context |
+| **Structured intent search** | Plain-English queries are normalized into role, seniority, skills, stage, salary, and exclusions before retrieval |
 | **Semantic matching** | BAAI/bge embeddings + Qdrant vector search — "ML Engineer" queries surface "Software Engineer" roles at AI companies |
 | **AI match scores** | Cerebras LLM re-ranks results and explains why each role fits (or doesn't), with strengths and gaps |
-| **Stream filters** | Filter results by track: Engineering, Data, or Product — auto-classified on ingest |
 | **Skill gap analysis** | See which skills your top matches demand that you're missing, with a strategic one-line insight |
 | **Pitch generator** | 3-format AI pitches (cover letter hook, cold email, why interested) mapped to the specific JD |
 | **Application tracker** | Kanban board — Saved / Applied / Interviewing / Offered / Rejected |
@@ -190,7 +190,7 @@ Required env vars on Vercel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VIT
 All endpoints (except `/api/health`) require `Authorization: Bearer <supabase_jwt>`.
 
 ```
-POST /api/search          — semantic search with resume context (supports stream filter)
+POST /api/search          — semantic search with resume context and structured intent extraction
 POST /api/explain         — detailed match breakdown for a job
 POST /api/resume/upload   — parse and store resume PDF
 GET  /api/resume/profile  — fetch parsed resume profile
@@ -217,13 +217,13 @@ direct/
 │   ├── config.py           # Settings + env vars (Pydantic BaseSettings)
 │   ├── models.py           # Pydantic request/response schemas
 │   ├── database.py         # Supabase CRUD helpers (all user-scoped)
-│   ├── indexer.py          # Scrape → dedup (URL hash + rapidfuzz) → stream-tag → embed → upsert
+│   ├── indexer.py          # Scrape → dedup (URL hash + rapidfuzz) → tag → embed → upsert
 │   ├── Dockerfile          # Bakes BGE model at build time
 │   ├── search/
 │   │   ├── embedder.py     # BAAI/bge-small-en-v1.5 wrapper (asymmetric prefixes)
 │   │   ├── vector_store.py # Qdrant Cloud client + payload index
 │   │   ├── reranker.py     # Cerebras LLM re-ranking + explanation
-│   │   ├── pipeline.py     # Search orchestrator (stream filter support)
+│   │   ├── pipeline.py     # Search orchestrator (location, salary, stage, role-type, exclude filters)
 │   │   └── gaps.py         # Gap analysis logic
 │   ├── resume/
 │   │   ├── parser.py       # PyMuPDF text extraction (in-memory, no disk write)
@@ -248,7 +248,7 @@ direct/
 │       │   ├── FeaturesPage.jsx    # /features — feature deep-dives
 │       │   ├── HowItWorksPage.jsx  # /how-it-works — 5-step guide
 │       │   ├── LoginPage.jsx       # Sign in / Sign up
-│       │   ├── SearchPage.jsx      # Main search + stream filter (protected)
+│       │   ├── SearchPage.jsx      # Main search experience (protected)
 │       │   ├── JobDetailPage.jsx   # Job detail + pitch generator (protected)
 │       │   ├── DashboardPage.jsx   # Gaps + tracker + digest (protected)
 │       │   └── ProfilePage.jsx     # Resume profile + watch settings (protected)

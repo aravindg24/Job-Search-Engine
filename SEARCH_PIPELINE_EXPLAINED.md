@@ -9,10 +9,16 @@ When a user searches **"I want to see AI engineer roles in Arizona"**, here's ex
 **File:** `backend/search/query_parser.py`
 
 ### What happens:
-- The raw query is parsed by Cerebras (or regex fallback) to extract **three components**:
+- The raw query is parsed by Cerebras (or regex fallback) to extract a structured intent object:
   - `clean_query`: "AI engineer" (role/intent, stripped of filler)
   - `location`: "Arizona" (geographic filter)
   - `remote`: null (not mentioned)
+  - `experience_level`: null
+  - `skills`: role/tech keywords such as `AI`, `Engineer`, `Python`, or `React`
+  - `company_stages`: optional startup-stage cues like `startup` or `Series A`
+  - `role_type`: optional type cues like `contract` or `full-time`
+  - `salary_min` / `salary_max`: optional salary bounds
+  - `excludes`: negative constraints such as `no banking`
 
 ### Weighting:
 - **Filler words removed** ("I want to see", "show me") — these add noise to embedding
@@ -45,7 +51,7 @@ When a user searches **"I want to see AI engineer roles in Arizona"**, here's ex
      - Lower multiplier (2x) when no location filter
    - Applied filters (hard constraints):
      - `remote=true/false` (if explicitly set)
-     - `stream` (engineering/data/product)
+     - `company_stage` when a single exact stage is available
 
 ### Weighting at this stage:
 | Factor | Weight | How it works |
@@ -55,7 +61,7 @@ When a user searches **"I want to see AI engineer roles in Arizona"**, here's ex
 | TF-IDF or BM25 | None | This uses pure vector similarity, not text ranking |
 | Location | **None at this stage** | Filtered out in Stage 3, not used here |
 | Remote preference | **Hard filter** | Included/excluded before vector search (not ranked, just filtered) |
-| Stream (eng/data/product) | **Hard filter** | Included/excluded before vector search (not ranked, just filtered) |
+| Company stage / role type / salary / excludes | **Post-filter + rerank context** | Applied after recall when payload data supports it |
 
 ### Example:
 Query: "AI engineer"
@@ -69,7 +75,7 @@ Query: "AI engineer"
 **File:** `backend/search/pipeline.py` (lines ~37-42)
 
 ### What happens:
-After vector search returns top candidates, jobs are filtered by location:
+After vector search returns top candidates, jobs are filtered by location and the structured intent fields that can be safely enforced:
 
 ```python
 if location_filter:
@@ -86,6 +92,7 @@ if location_filter:
 | Job location contains "arizona" (case-insensitive) | ✓ Keep |
 | Job location does NOT contain "arizona" BUT `remote=true` | ✓ Keep (remote jobs accessible from anywhere) |
 | Job location does NOT contain "arizona" AND `remote=false` | ✗ Remove |
+| Job fails salary overlap or exclusion checks | ✗ Remove when payload data is present |
 
 ### Example:
 User searched: "Arizona" location filter
