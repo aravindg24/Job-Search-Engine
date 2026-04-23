@@ -155,6 +155,87 @@ def tag_company_stages(jobs: list[dict]) -> list[dict]:
     return jobs
 
 
+_ROLE_TYPE_PATTERNS = {
+    "internship": [r"\bintern(ship)?\b", r"\bapprentice(ship)?\b"],
+    "contract": [r"\bcontract(or)?\b", r"\btemp(orary)?\b"],
+    "part-time": [r"\bpart[- ]?time\b"],
+    "freelance": [r"\bfreelance\b"],
+    "full-time": [r"\bfull[- ]?time\b", r"\bfte\b", r"\bpermanent\b"],
+}
+
+
+def _infer_role_type(job: dict) -> str | None:
+    text = " ".join([
+        job.get("title", ""),
+        job.get("description", ""),
+        " ".join(job.get("tags", []) if isinstance(job.get("tags"), list) else []),
+    ]).lower()
+    if not text.strip():
+        return None
+    for role_type, patterns in _ROLE_TYPE_PATTERNS.items():
+        if any(__import__("re").search(pattern, text, __import__("re").IGNORECASE) for pattern in patterns):
+            return role_type
+    return None
+
+
+def _to_salary_number(value: str, suffix: str | None) -> int | None:
+    try:
+        number = float(value)
+        if suffix and suffix.lower() == "k":
+            number *= 1000
+        elif number < 1000:
+            number *= 1000
+        return int(number)
+    except Exception:
+        return None
+
+
+def _infer_salary_bounds(job: dict) -> tuple[int | None, int | None]:
+    import re
+
+    if job.get("salary_min") is not None or job.get("salary_max") is not None:
+        min_val = int(job["salary_min"]) if job.get("salary_min") is not None else None
+        max_val = int(job["salary_max"]) if job.get("salary_max") is not None else None
+        return min_val, max_val
+
+    salary_text = " ".join([
+        str(job.get("salary_range") or ""),
+        str(job.get("compensation") or ""),
+    ])
+    salary_text = salary_text.strip()
+    if not salary_text:
+        return None, None
+
+    range_match = re.search(
+        r'(?P<min>\d{2,3}(?:\.\d+)?)\s*(?P<min_suffix>[kK]?)\s*(?:-|to)\s*(?P<max>\d{2,3}(?:\.\d+)?)\s*(?P<max_suffix>[kK]?)',
+        salary_text,
+    )
+    if range_match:
+        min_val = _to_salary_number(range_match.group("min"), range_match.group("min_suffix") or None)
+        max_val = _to_salary_number(range_match.group("max"), range_match.group("max_suffix") or None)
+        return min_val, max_val
+
+    min_match = re.search(r'\b(?:from|starting at|at least|minimum)\s*\$?(?P<min>\d{2,3}(?:\.\d+)?)\s*(?P<suffix>[kK]?)', salary_text, re.IGNORECASE)
+    max_match = re.search(r'\b(?:up to|maximum|max)\s*\$?(?P<max>\d{2,3}(?:\.\d+)?)\s*(?P<suffix>[kK]?)', salary_text, re.IGNORECASE)
+
+    min_val = _to_salary_number(min_match.group("min"), min_match.group("suffix") or None) if min_match else None
+    max_val = _to_salary_number(max_match.group("max"), max_match.group("suffix") or None) if max_match else None
+    return min_val, max_val
+
+
+def enrich_structured_metadata(jobs: list[dict]) -> list[dict]:
+    """Populate structured metadata fields used by search filters when missing."""
+    for job in jobs:
+        if not job.get("role_type"):
+            job["role_type"] = _infer_role_type(job)
+        salary_min, salary_max = _infer_salary_bounds(job)
+        if salary_min is not None and job.get("salary_min") is None:
+            job["salary_min"] = salary_min
+        if salary_max is not None and job.get("salary_max") is None:
+            job["salary_max"] = salary_max
+    return jobs
+
+
 def load_seed_jobs() -> list[dict]:
     path = DATA_DIR / "seed_jobs.json"
     if not path.exists():
@@ -265,6 +346,7 @@ def main(include_scraped: bool = True):
     all_jobs = stamp_indexed_at(all_jobs)
     all_jobs = tag_streams(all_jobs)
     all_jobs = tag_company_stages(all_jobs)
+    all_jobs = enrich_structured_metadata(all_jobs)
 
     total_after_dedup = len(all_jobs)
 

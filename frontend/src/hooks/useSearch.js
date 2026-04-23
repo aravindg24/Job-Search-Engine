@@ -122,11 +122,11 @@ export function useSearch() {
     await fetchPage(query, page, sortBy, options)
   }, [query, sortBy, loading, fetchPage])
 
-  const changeSortBy = useCallback(async (newSort) => {
+  const changeSortBy = useCallback(async (newSort, options = {}) => {
     setSortBy(newSort)
     if (!query.trim()) return
     setCurrentPage(1)
-    await fetchPage(query, 1, newSort)
+    await fetchPage(query, 1, newSort, options)
   }, [query, fetchPage])
 
   const reset = useCallback(() => {

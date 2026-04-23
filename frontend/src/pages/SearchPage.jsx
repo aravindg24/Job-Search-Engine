@@ -20,9 +20,44 @@ export default function SearchPage() {
   const { profile } = useResume()
   const [pitchJob, setPitchJob] = useState(null)
   const [inputValue, setInputValue] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filters, setFilters] = useState({
+    location: '',
+    remote: 'any',
+    experience_level: '',
+    role_type: '',
+    company_stages: '',
+    salary_min: '',
+    salary_max: '',
+    excludes: '',
+  })
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const didAutoSearch = useRef(false)
+
+  const buildFiltersPayload = () => {
+    const payload = {}
+    if (filters.location.trim()) payload.location = filters.location.trim()
+    if (filters.remote === 'remote') payload.remote = true
+    if (filters.remote === 'onsite') payload.remote = false
+    if (filters.experience_level) payload.experience_level = filters.experience_level
+    if (filters.role_type) payload.role_type = filters.role_type
+    if (filters.company_stages.trim()) {
+      payload.company_stages = filters.company_stages
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    }
+    if (filters.salary_min !== '') payload.salary_min = Number(filters.salary_min)
+    if (filters.salary_max !== '') payload.salary_max = Number(filters.salary_max)
+    if (filters.excludes.trim()) {
+      payload.excludes = filters.excludes
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    }
+    return Object.keys(payload).length ? payload : null
+  }
 
   // Auto-search when navigated here with ?q= param (from HomePage)
   useEffect(() => {
@@ -30,9 +65,9 @@ export default function SearchPage() {
     if (q && !didAutoSearch.current) {
       didAutoSearch.current = true
       setInputValue(q)
-      search(q)
+      search(q, { filters: buildFiltersPayload() })
     }
-  }, [searchParams, search])
+  }, [searchParams, search, filters])
 
   // Keep input in sync with active query
   useEffect(() => {
@@ -42,12 +77,12 @@ export default function SearchPage() {
   const handleSubmit = (e) => {
     e?.preventDefault()
     if (!inputValue.trim() || loading) return
-    search(inputValue.trim())
+    search(inputValue.trim(), { filters: buildFiltersPayload() })
   }
 
   const handleRecent = (q) => {
     setInputValue(q)
-    search(q)
+    search(q, { filters: buildFiltersPayload() })
   }
 
   const handleReset = () => {
@@ -143,7 +178,120 @@ export default function SearchPage() {
               ) : '⟶'}
             </button>
           </form>
+
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(v => !v)}
+            className="text-xs font-medium px-3 py-2 rounded-lg transition-all"
+            style={{
+              color: 'var(--text-3)',
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            {filtersOpen ? 'Hide filters' : 'Advanced filters'}
+          </button>
         </div>
+
+        {filtersOpen && (
+          <div className="max-w-3xl mx-auto mt-3 p-3 rounded-xl" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <input
+                value={filters.location}
+                onChange={e => setFilters(f => ({ ...f, location: e.target.value }))}
+                placeholder="Location"
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+              <select
+                value={filters.remote}
+                onChange={e => setFilters(f => ({ ...f, remote: e.target.value }))}
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              >
+                <option value="any">Remote or On-site</option>
+                <option value="remote">Remote only</option>
+                <option value="onsite">On-site only</option>
+              </select>
+              <select
+                value={filters.experience_level}
+                onChange={e => setFilters(f => ({ ...f, experience_level: e.target.value }))}
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              >
+                <option value="">Any seniority</option>
+                <option value="entry">Entry</option>
+                <option value="junior">Junior</option>
+                <option value="mid">Mid</option>
+                <option value="senior">Senior</option>
+                <option value="staff">Staff</option>
+                <option value="principal">Principal</option>
+              </select>
+              <select
+                value={filters.role_type}
+                onChange={e => setFilters(f => ({ ...f, role_type: e.target.value }))}
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              >
+                <option value="">Any role type</option>
+                <option value="full-time">Full-time</option>
+                <option value="contract">Contract</option>
+                <option value="internship">Internship</option>
+                <option value="part-time">Part-time</option>
+                <option value="freelance">Freelance</option>
+              </select>
+              <input
+                value={filters.company_stages}
+                onChange={e => setFilters(f => ({ ...f, company_stages: e.target.value }))}
+                placeholder="Stages (e.g. startup,series a)"
+                className="px-2 py-1.5 rounded-lg text-xs sm:col-span-2"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+              <input
+                type="number"
+                value={filters.salary_min}
+                onChange={e => setFilters(f => ({ ...f, salary_min: e.target.value }))}
+                placeholder="Min salary"
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+              <input
+                type="number"
+                value={filters.salary_max}
+                onChange={e => setFilters(f => ({ ...f, salary_max: e.target.value }))}
+                placeholder="Max salary"
+                className="px-2 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+              <input
+                value={filters.excludes}
+                onChange={e => setFilters(f => ({ ...f, excludes: e.target.value }))}
+                placeholder="Exclude keywords (comma-separated)"
+                className="px-2 py-1.5 rounded-lg text-xs sm:col-span-2"
+                style={{ backgroundColor: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+            </div>
+            <div className="mt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setFilters({
+                  location: '',
+                  remote: 'any',
+                  experience_level: '',
+                  role_type: '',
+                  company_stages: '',
+                  salary_min: '',
+                  salary_max: '',
+                  excludes: '',
+                })}
+                className="text-xs px-3 py-1.5 rounded-lg"
+                style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Body ── */}
@@ -211,7 +359,7 @@ export default function SearchPage() {
                 {results.length > 0 && (
                   <select
                     value={sortBy}
-                    onChange={e => changeSortBy(e.target.value)}
+                    onChange={e => changeSortBy(e.target.value, { filters: buildFiltersPayload() })}
                     className="text-xs px-2 py-1 rounded-lg"
                     style={{
                       backgroundColor: 'var(--surface)',
@@ -247,7 +395,7 @@ export default function SearchPage() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={goToPage}
+                onPageChange={(page) => goToPage(page, { filters: buildFiltersPayload() })}
               />
             )}
           </>

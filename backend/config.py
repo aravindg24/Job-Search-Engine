@@ -1,5 +1,6 @@
 from pathlib import Path
 from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 
 _ENV_FILE = Path(__file__).parent / ".env"
 
@@ -26,10 +27,13 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_key: str = ""
     supabase_service_key: str = ""   # service_role key — required for admin invite
+    supabase_jwt_secret: str = ""    # optional; ignored by current auth flow
 
-    class Config:
-        env_file = str(_ENV_FILE)
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=str(_ENV_FILE),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = Settings()
