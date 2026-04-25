@@ -32,16 +32,38 @@ _US_STATES = {
 _STATE_ABBR = {v: k for k, v in _US_STATES.items()}
 
 
+_USA_QUERIES = {"usa", "us", "united states", "united states of america"}
+
 def _location_matches(job_location: str, query_location: str) -> bool:
     """
     Smart location matching: parse 'City, State' format and match by state.
     Handles 'Phoenix, AZ', 'Phoenix, Arizona', 'Arizona, USA', 'AZ', 'Arizona'.
+    For country-wide queries like 'USA'/'US'/'United States', matches any US location
+    or unspecified remote (no country) but rejects explicitly non-US locations.
     """
-    if not job_location or not query_location:
+    if not query_location:
         return False
 
-    job_loc = job_location.lower().strip()
+    job_loc = (job_location or "").lower().strip()
     q_loc = query_location.lower().strip()
+
+    # Country-wide USA query: match any job with a US location indicator
+    if q_loc in _USA_QUERIES:
+        # Unspecified remote (no country) passes through for country-wide USA searches
+        if job_loc in ("remote", "", "worldwide", "anywhere", "global"):
+            return True
+        # Explicit US indicator in the location string
+        if re.search(r'\busa?\b', job_loc) or "united states" in job_loc:
+            return True
+        # Any US state name or abbreviation present in the location
+        for part in [p.strip() for p in job_loc.split(",")]:
+            part_clean = re.sub(r'\b(usa?|united states)\b', '', part).strip()
+            if part_clean in _US_STATES or part_clean in _STATE_ABBR:
+                return True
+        return False
+
+    if not job_loc:
+        return False
 
     # Direct substring match first (fast path)
     if q_loc in job_loc:
@@ -158,6 +180,25 @@ def _matches_excludes(payload: Dict[str, Any], excludes: Optional[List[str]]) ->
     return not any(term in blob for term in _normalize_terms(excludes))
 
 
+_EXPERIENCE_LEVEL_PATTERNS = {
+    "principal": re.compile(r'\bprincipal\b', re.IGNORECASE),
+    "staff":     re.compile(r'\bstaff\b', re.IGNORECASE),
+    "senior":    re.compile(r'\bsenior\b|\bsr\.?\b', re.IGNORECASE),
+    "mid":       re.compile(r'\bmid(?:-?level)?\b', re.IGNORECASE),
+    "junior":    re.compile(r'\bjunior\b|\bjr\.?\b', re.IGNORECASE),
+    "entry":     re.compile(r'\bentry(?:-?level)?\b|\bnew\s+grad\b|\bgraduate\b', re.IGNORECASE),
+}
+
+def _metadata_matches_experience_level(payload: Dict[str, Any], level: Optional[str]) -> bool:
+    if not level:
+        return True
+    pattern = _EXPERIENCE_LEVEL_PATTERNS.get(level.strip().lower())
+    if pattern is None:
+        return True  # unrecognised value — don't filter
+    text = f"{payload.get('title', '')} {payload.get('description', '')}"
+    return bool(pattern.search(text))
+
+
 def run_search(
     query: str,
     top_k: int = 10,
@@ -175,7 +216,17 @@ def run_search(
 
     # Step 2: Vector search — fetch enough for offset + top_k after filtering.
     location_filter = (filters.location or "").strip() if filters else ""
-    fetch_multiplier = 5 if sort_by == "recent" else 4 if location_filter else 3
+    active_post_filters = sum([
+        bool(location_filter),
+        bool(filters and filters.experience_level),
+        bool(filters and filters.role_type),
+        bool(filters and filters.excludes),
+        bool(filters and filters.salary_min is not None),
+        bool(filters and filters.salary_max is not None),
+    ])
+    fetch_multiplier = min(3 + active_post_filters, 8)
+    if sort_by == "recent":
+        fetch_multiplier = max(fetch_multiplier, 5)
     fetch_k = (offset + top_k) * fetch_multiplier
 
     filter_dict = None
@@ -191,13 +242,13 @@ def run_search(
     if not candidates:
         return []
 
-    # Step 3: Smart location post-filter.
-    # Remote jobs always pass. Non-remote jobs must match location via smart parsing.
+    # Step 3: Smart location post-filter — every job must pass location matching.
+    # _location_matches() handles unspecified remote ("Remote" with no country) for
+    # country-wide queries (USA/US) and strict state/city matching otherwise.
     if location_filter:
         candidates = [
             c for c in candidates
-            if c["payload"].get("remote", False)
-            or _location_matches(c["payload"].get("location") or "", location_filter)
+            if _location_matches(c["payload"].get("location") or "", location_filter)
         ]
 
     if candidates and filters:
@@ -205,6 +256,7 @@ def run_search(
             c for c in candidates
             if _metadata_matches_stage(c["payload"], filters.company_stages)
             and _metadata_matches_role_type(c["payload"], filters.role_type)
+            and _metadata_matches_experience_level(c["payload"], filters.experience_level)
             and _salary_bounds_match(c["payload"], filters.salary_min, filters.salary_max)
             and _matches_excludes(c["payload"], filters.excludes)
         ]
