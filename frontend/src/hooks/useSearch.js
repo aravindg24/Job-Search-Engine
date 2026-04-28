@@ -15,8 +15,8 @@ function loadSession() {
   } catch { return null }
 }
 
-function saveSession(query, results) {
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ query, results })) } catch { /* ignore */ }
+function saveSession(query, results, page, sortBy, total) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ query, results, page, sortBy, total })) } catch { /* ignore */ }
 }
 
 export function clearSession() {
@@ -52,9 +52,9 @@ export function useSearch() {
   const [query,         setQuery]         = useState(saved?.query  || '')
   const [hasSearched,   setHasSearched]   = useState(!!saved)
   const [recentQueries, setRecentQueries] = useState(() => loadRecent())
-  const [currentPage,   setCurrentPage]   = useState(1)
-  const [total,         setTotal]         = useState(0)
-  const [sortBy,        setSortBy]        = useState('relevance')
+  const [currentPage,   setCurrentPage]   = useState(saved?.page  || 1)
+  const [total,         setTotal]         = useState(saved?.total || 0)
+  const [sortBy,        setSortBy]        = useState(saved?.sortBy || 'relevance')
 
   const PAGE_SIZE = 10
   const totalPages = Math.ceil(total / PAGE_SIZE)
@@ -92,8 +92,10 @@ export function useSearch() {
     try {
       const data = await searchJobs({ query: queryText, top_k: PAGE_SIZE, offset, sort_by: sort, ...options })
       const hits = data.results || []
+      const fetchedTotal = data.total || 0
       setResults(hits)
-      setTotal(data.total || 0)
+      setTotal(fetchedTotal)
+      saveSession(queryText, hits, page, sort, fetchedTotal)
       return hits
     } catch (err) {
       setError(err.response?.data?.detail || 'Search failed. Make sure the backend is running.')
@@ -110,8 +112,7 @@ export function useSearch() {
     setQuery(queryText)
     setCurrentPage(1)
     setHasSearched(true)
-    const hits = await fetchPage(queryText, 1, sortBy, options)
-    saveSession(queryText, hits)
+    await fetchPage(queryText, 1, sortBy, options)
     setRecentQueries(pushRecent(queryText))
   }, [sortBy, fetchPage])
 

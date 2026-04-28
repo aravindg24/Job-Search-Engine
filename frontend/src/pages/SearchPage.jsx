@@ -34,6 +34,29 @@ export default function SearchPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const didAutoSearch = useRef(false)
+  const didRestoreScroll = useRef(false)
+  const SCROLL_KEY = 'direct_scroll_y'
+
+  // Save scroll position when leaving the page (e.g. opening a job detail)
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem(SCROLL_KEY, String(window.scrollY))
+    }
+  }, [])
+
+  // Restore scroll position after results render on back-navigation
+  useEffect(() => {
+    if (results.length > 0 && !didRestoreScroll.current) {
+      const saved = sessionStorage.getItem(SCROLL_KEY)
+      if (saved !== null) {
+        didRestoreScroll.current = true
+        sessionStorage.removeItem(SCROLL_KEY)
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: parseInt(saved, 10), behavior: 'instant' })
+        })
+      }
+    }
+  }, [results])
 
   const buildFiltersPayload = () => {
     const payload = {}
