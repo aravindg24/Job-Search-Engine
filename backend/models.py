@@ -194,10 +194,18 @@ class DigestJob(BaseModel):
     id: str
     title: str
     company: str
+    location: str = ""
+    remote: bool = False
+    description: str = ""
+    requirements: List[str] = []
+    salary_range: Optional[str] = None
+    company_stage: Optional[str] = None
+    tags: List[str] = []
+    source: str
+    source_url: Optional[str] = None
+    posted_date: Optional[str] = None
     match_score: float
     match_reason: str
-    posted_date: Optional[str]
-    source: str
     job_is_saved: Optional[bool] = False
 
 

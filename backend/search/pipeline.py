@@ -189,13 +189,25 @@ _EXPERIENCE_LEVEL_PATTERNS = {
     "entry":     re.compile(r'\bentry(?:-?level)?\b|\bnew\s+grad\b|\bgraduate\b', re.IGNORECASE),
 }
 
+# Detects whether a job has ANY explicit seniority marker at all
+_ALL_SENIORITY_RE = re.compile(
+    r'\b(principal|staff|senior|sr\.?|mid(?:-?level)?|junior|jr\.?'
+    r'|entry(?:-?level)?|new\s+grad|graduate)\b',
+    re.IGNORECASE
+)
+
 def _metadata_matches_experience_level(payload: Dict[str, Any], level: Optional[str]) -> bool:
+    """Soft seniority filter: jobs with no explicit seniority marker pass through.
+    Only exclude a job if it explicitly states a *different* seniority level."""
     if not level:
+        return True
+    text = f"{payload.get('title', '')} {payload.get('description', '')}"
+    # No seniority marker in the job at all → don't exclude (neutral title)
+    if not _ALL_SENIORITY_RE.search(text):
         return True
     pattern = _EXPERIENCE_LEVEL_PATTERNS.get(level.strip().lower())
     if pattern is None:
         return True  # unrecognised value — don't filter
-    text = f"{payload.get('title', '')} {payload.get('description', '')}"
     return bool(pattern.search(text))
 
 
