@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuth } from '../../hooks/useAuth'
@@ -35,32 +34,11 @@ function MoonIcon() {
   )
 }
 
-function MenuIcon({ open }) {
-  return (
-    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
-      className={`transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
-    >
-      {open ? (
-        <>
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </>
-      ) : (
-        <>
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </>
-      )}
-    </svg>
-  )
-}
 
 export default function Header({ onOpenPalette }) {
   const { dark, toggle } = useTheme()
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -128,7 +106,7 @@ export default function Header({ onOpenPalette }) {
           </button>
         </nav>
 
-        {/* Mobile controls */}
+        {/* Mobile controls — theme + sign out (nav handled by BottomNav) */}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={toggle}
@@ -137,55 +115,16 @@ export default function Header({ onOpenPalette }) {
           >
             {dark ? <SunIcon /> : <MoonIcon />}
           </button>
-          <button
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label="Toggle menu"
-            className="w-8 h-8 rounded-lg flex items-center justify-center btn-secondary"
-          >
-            <MenuIcon open={menuOpen} />
-          </button>
+          {user && (
+            <button
+              onClick={handleSignOut}
+              className="text-xs px-3 py-1.5 rounded-lg btn-secondary font-medium hover:text-red-500 hover:border-red-200 transition-all duration-150"
+            >
+              Sign out
+            </button>
+          )}
         </div>
       </div>
-
-      {/* Mobile drawer */}
-      {menuOpen && (
-        <div
-          className="md:hidden animate-slide-up"
-          style={{ borderTop: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
-        >
-          <nav className="px-4 py-3 space-y-1">
-            <button
-              onClick={() => { clearSession(); navigate('/home'); setMenuOpen(false) }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium link-muted text-left bg-transparent border-none cursor-pointer hover:bg-[var(--surface-2)] transition-colors"
-            >
-              Home
-            </button>
-            {NAV_LINKS.map(link => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                   ${isActive
-                     ? 'bg-[var(--accent-light)] text-[var(--text)]'
-                     : 'text-[var(--text-3)] hover:bg-[var(--surface-2)]'}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-            {user && (
-              <button
-                onClick={() => { handleSignOut(); setMenuOpen(false) }}
-                className="w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors text-left bg-transparent border-none cursor-pointer"
-              >
-                Sign out
-              </button>
-            )}
-          </nav>
-        </div>
-      )}
     </header>
   )
 }

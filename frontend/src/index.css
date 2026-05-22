@@ -267,3 +267,26 @@ body::after {
 /* ── Command palette backdrop ─────────────────────────────── */
 .cmd-backdrop { animation: fadeIn 0.15s ease-out; }
 .cmd-panel    { animation: slideUp 0.2s cubic-bezier(0.16,1,0.3,1); }
+
+/* ── Mobile safe-area utilities ───────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ── Touch: suppress 300ms tap delay globally ─────────────── */
+a, button, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* ── Active press feedback for touch ─────────────────────── */
+@media (hover: none) {
+  .card:active {
+    transform: scale(0.985);
+    border-color: rgba(252, 170, 45, 0.25);
+  }
+  .btn-secondary:active {
+    background-color: var(--bg-3);
+  }
+}

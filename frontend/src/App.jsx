@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import Header from './components/layout/Header'
+import BottomNav from './components/layout/BottomNav'
 import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
 import HowItWorksPage from './pages/HowItWorksPage'
@@ -51,7 +52,7 @@ export default function App() {
           <Route path="/*" element={
             <AuthGuard>
               <Header onOpenPalette={() => setPaletteOpen(true)} />
-              <main className="flex-1">
+              <main className="flex-1 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
                 <Routes>
                   <Route path="/home" element={<HomePage />} />
                   <Route path="/search" element={<SearchPage />} />
@@ -62,6 +63,7 @@ export default function App() {
                   <Route path="/analyze" element={<JDAnalyzePage />} />
                 </Routes>
               </main>
+              <BottomNav />
             </AuthGuard>
           } />
         </Routes>

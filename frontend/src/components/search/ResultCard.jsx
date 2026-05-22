@@ -103,44 +103,48 @@ export default function ResultCard({ job, index, query, onPitch }) {
       <div className="h-px bg-[var(--border-2)] mb-3" />
 
       {/* Actions */}
-      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-        <button
-          onClick={handleSave}
-          disabled={saving || saved}
-          className={`text-xs px-3 py-1.5 rounded-lg transition-all duration-150 border font-medium
-            disabled:opacity-50 disabled:cursor-not-allowed
-            ${saved
-              ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50'
-              : 'btn-secondary'
-            }`}
-        >
-          {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
-        </button>
-
-        <button
-          onClick={(e) => { e.stopPropagation(); onPitch && onPitch(job) }}
-          className="text-xs px-3 py-1.5 rounded-lg btn-secondary font-medium"
-        >
-          Generate Pitch
-        </button>
-
-        {job.source_url && (
-          <a
-            href={job.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="text-xs px-3 py-1.5 rounded-lg transition-all duration-150 inline-flex items-center gap-1 font-medium
-              bg-[var(--accent-light)] text-[var(--accent-dark)] border border-[rgba(252,170,45,0.25)]
-              hover:bg-[rgba(252,170,45,0.18)] hover:border-[rgba(252,170,45,0.45)]"
+      <div className="flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
+        {/* Left group — wraps on very small screens */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleSave}
+            disabled={saving || saved}
+            className={`text-xs px-3 py-1.5 rounded-lg transition-all duration-150 border font-medium
+              disabled:opacity-50 disabled:cursor-not-allowed active:scale-95
+              ${saved
+                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/50'
+                : 'btn-secondary'
+              }`}
           >
-            Apply ↗
-          </a>
-        )}
+            {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
+          </button>
 
+          <button
+            onClick={(e) => { e.stopPropagation(); onPitch && onPitch(job) }}
+            className="text-xs px-3 py-1.5 rounded-lg btn-secondary font-medium active:scale-95 transition-all duration-150"
+          >
+            Pitch
+          </button>
+
+          {job.source_url && (
+            <a
+              href={job.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="text-xs px-3 py-1.5 rounded-lg transition-all duration-150 inline-flex items-center gap-1 font-medium active:scale-95
+                bg-[var(--accent-light)] text-[var(--accent-dark)] border border-[rgba(252,170,45,0.25)]
+                hover:bg-[rgba(252,170,45,0.18)] hover:border-[rgba(252,170,45,0.45)]"
+            >
+              Apply ↗
+            </a>
+          )}
+        </div>
+
+        {/* Right — always pinned */}
         <button
           onClick={() => navigate(`/job/${job.id}`, { state: { job, query } })}
-          className="ml-auto text-xs link-muted"
+          className="text-xs link-muted shrink-0 active:text-[var(--text)] transition-colors"
         >
           Details →
         </button>
