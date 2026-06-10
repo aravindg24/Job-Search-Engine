@@ -44,9 +44,9 @@ export default {
         'card-dark-hover': '0 4px 12px rgba(0,0,0,0.4)',
       },
       animation: {
-        'fade-in':   'fadeIn 0.25s ease-out',
-        'slide-up':  'slideUp 0.35s ease-out',
-        'slide-right':'slideRight 0.3s ease-out',
+        'fade-in':   'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-up':  'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-right':'slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         fadeIn:     { from: { opacity: 0 },                              to: { opacity: 1 } },

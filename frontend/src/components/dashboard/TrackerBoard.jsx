@@ -12,7 +12,7 @@ const COLUMNS = [
 function TrackerCard({ job, onStatusChange, onRemove }) {
   return (
     <div
-      className="rounded-xl p-3 text-sm space-y-2"
+      className="rounded-xl p-3 text-sm space-y-2 transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-lg dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)] hover:border-accent/40"
       style={{ backgroundColor: 'var(--bg-2)', border: '1px solid var(--border)' }}
     >
       <div className="flex items-start justify-between gap-2">

@@ -3,10 +3,10 @@ export default function MatchBadge({ score, size = 'md' }) {
   const s = Math.round(score)
 
   let color, bg, border
-  if (s >= 80) {
-    color = '#16a34a'; bg = 'rgba(34,197,94,0.10)'; border = 'rgba(34,197,94,0.22)'
-  } else if (s >= 60) {
-    color = '#b45309'; bg = 'rgba(245,158,11,0.10)'; border = 'rgba(245,158,11,0.22)'
+  if (s >= 85) {
+    color = '#22C55E'; bg = 'rgba(34,197,94,0.10)'; border = 'rgba(34,197,94,0.22)'
+  } else if (s >= 70) {
+    color = '#FCAA2D'; bg = 'rgba(252,170,45,0.10)'; border = 'rgba(252,170,45,0.22)'
   } else {
     color = 'var(--text-4)'; bg = 'var(--surface-2)'; border = 'var(--border)'
   }

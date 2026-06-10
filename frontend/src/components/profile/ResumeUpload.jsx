@@ -19,12 +19,23 @@ export default function ResumeUpload({ onUpload, uploading }) {
         handleFile(e.dataTransfer.files[0])
       }}
       onClick={() => inputRef.current?.click()}
-      className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${
-        dragging
-          ? 'border-accent bg-accent/5'
-          : 'border-border hover:border-zinc-600 hover:bg-white/[0.02]'
-      }`}
+      className="relative rounded-xl p-10 text-center cursor-pointer transition-all select-none bg-page-2 hover:bg-white/[0.01]"
     >
+      {/* SVG Animated Border */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none rounded-xl" xmlns="http://www.w3.org/2000/svg">
+        <rect
+          className={`w-full h-full fill-none stroke-[2] transition-all duration-300
+            ${dragging 
+              ? 'stroke-accent [stroke-dasharray:8,4] [animation:dash-rotate_15s_linear_infinite]' 
+              : 'stroke-zinc-300 dark:stroke-zinc-800 [stroke-dasharray:6,6]'
+            }`}
+          width="100%"
+          height="100%"
+          rx="12"
+          ry="12"
+        />
+      </svg>
+
       <input
         ref={inputRef}
         type="file"
@@ -43,7 +54,13 @@ export default function ResumeUpload({ onUpload, uploading }) {
         </div>
       ) : (
         <div className="flex flex-col items-center gap-2">
-          <svg className="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg 
+            className={`w-8 h-8 text-zinc-500 transition-all duration-300 ${dragging ? 'translate-y-[-4px] text-accent scale-110' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           <p className="text-primary text-sm font-medium">Drop your resume here</p>

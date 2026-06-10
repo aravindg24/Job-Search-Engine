@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 
 function scoreColor(s) {
-  if (s >= 80) return '#22C55E'
-  if (s >= 60) return '#F59E0B'
-  return '#71717A'
+  if (s >= 85) return '#22C55E' // Success Green
+  if (s >= 70) return '#FCAA2D' // Amber Gold
+  return '#71717A'             // Neutral Gray
 }
 
 export default function ScoreArc({ score, size = 56 }) {
@@ -11,10 +11,25 @@ export default function ScoreArc({ score, size = 56 }) {
   const r = (size / 2) - 5
   const circ = 2 * Math.PI * r
   const [offset, setOffset] = useState(circ)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setOffset(circ - (s / 100) * circ), 120)
-    return () => clearTimeout(t)
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mediaQuery.matches)
+
+    const handler = (e) => setReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handler)
+
+    if (mediaQuery.matches) {
+      setOffset(circ - (s / 100) * circ)
+    } else {
+      const t = setTimeout(() => setOffset(circ - (s / 100) * circ), 120)
+      return () => {
+        clearTimeout(t)
+        mediaQuery.removeEventListener('change', handler)
+      }
+    }
+    return () => mediaQuery.removeEventListener('change', handler)
   }, [s, circ])
 
   const color = scoreColor(s)
@@ -34,7 +49,9 @@ export default function ScoreArc({ score, size = 56 }) {
         strokeDashoffset={offset}
         strokeLinecap="round"
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ transition: 'stroke-dashoffset 0.85s cubic-bezier(0.34,1.56,0.64,1)' }}
+        style={{
+          transition: reducedMotion ? 'none' : 'stroke-dashoffset 0.85s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
       />
       {/* Score label */}
       <text
